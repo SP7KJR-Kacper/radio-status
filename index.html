@@ -128,19 +128,19 @@ fetch(url)
     const rows = json.table.rows;
 
     document.getElementById("status").innerText =
-        rows[0].c[1].v;
+    rows[1].c[1].v;
 
-    document.getElementById("updated").innerText =
-        rows[1].c[1].v;
+document.getElementById("updated").innerText =
+    rows[2].c[1].v;
 
-    document.getElementById("frequency").innerText =
-        rows[2].c[1].v;
+document.getElementById("frequency").innerText =
+    rows[3].c[1].v;
 
-    document.getElementById("network").innerText =
-        rows[3].c[1].v;
+document.getElementById("network").innerText =
+    rows[4].c[1].v;
 
-    document.getElementById("qth").innerText =
-        rows[4].c[1].v;
+document.getElementById("qth").innerText =
+    rows[5].c[1].v;
 
 })
 .catch(error => {
