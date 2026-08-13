@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <title>SP7KJR - Status radiowy</title>
 
     <style>
+
         * {
             box-sizing: border-box;
         }
@@ -79,28 +81,35 @@
             font-size: 14px;
         }
 
-        .error {
-            color: #ff6b6b;
-            font-size: 18px;
-        }
     </style>
+
 </head>
+
 
 <body>
 
     <main class="container">
 
-        <h1>📡 SP7KJR</h1>
+        <h1>
+            📡 SP7KJR
+        </h1>
 
         <div class="subtitle">
             STATUS RADIOWY
         </div>
 
+
+        <!-- STATUS -->
+
         <div class="status" id="status">
             Ładowanie...
         </div>
 
+
+        <!-- OSTATNIA AKTUALIZACJA -->
+
         <div class="card">
+
             <div class="label">
                 OSTATNIA AKTUALIZACJA
             </div>
@@ -108,9 +117,14 @@
             <div class="value" id="updated">
                 ---
             </div>
+
         </div>
 
-        <div class="card">
+
+        <!-- CZĘSTOTLIWOŚĆ -->
+
+        <div class="card" id="frequencyCard">
+
             <div class="label">
                 CZĘSTOTLIWOŚĆ / ZNAK PRZEMIENNIKA
             </div>
@@ -118,9 +132,14 @@
             <div class="value frequency" id="frequency">
                 ---
             </div>
+
         </div>
 
-        <div class="card">
+
+        <!-- SIEĆ -->
+
+        <div class="card" id="networkCard">
+
             <div class="label">
                 SIEĆ
             </div>
@@ -128,9 +147,14 @@
             <div class="value" id="network">
                 ---
             </div>
+
         </div>
 
-        <div class="card">
+
+        <!-- QTH -->
+
+        <div class="card" id="qthCard">
+
             <div class="label">
                 QTH
             </div>
@@ -138,7 +162,9 @@
             <div class="value" id="qth">
                 ---
             </div>
+
         </div>
+
 
         <div class="footer">
             SP7KJR • Krótkofalarstwo
@@ -147,7 +173,9 @@
     </main>
 
 
+
     <script>
+
 
         /*
          * ==========================================
@@ -171,9 +199,10 @@
             "/gviz/tq?tqx=out:json&headers=1&range=A:B";
 
 
+
         /*
          * ==========================================
-         * FUNKCJA POBIERAJĄCA DANE
+         * POBIERANIE DANYCH
          * ==========================================
          */
 
@@ -181,9 +210,10 @@
 
             try {
 
+
                 /*
-                 * Dodajemy losowy parametr,
-                 * żeby przeglądarka nie użyła starej kopii danych.
+                 * Zapobiega korzystaniu ze starej
+                 * wersji danych zapisanej w cache.
                  */
 
                 const url =
@@ -192,79 +222,86 @@
                     Date.now();
 
 
-                const response = await fetch(url);
+                const response =
+                    await fetch(url);
 
 
                 if (!response.ok) {
+
                     throw new Error(
-                        "Google Sheets zwrócił błąd HTTP " +
+                        "Błąd HTTP: " +
                         response.status
                     );
+
                 }
 
 
-                const text = await response.text();
+                const text =
+                    await response.text();
+
 
 
                 /*
-                 * Google zwraca dane jako:
+                 * Google Sheets zwraca odpowiedź
+                 * w formacie:
                  *
-                 * google.visualization.Query.setResponse({...});
-                 *
-                 * Wyciągamy z tego samo JSON.
+                 * google.visualization.Query.setResponse(...)
                  */
 
-                const match = text.match(
-                    /google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/
-                );
+                const match =
+                    text.match(
+                        /google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/
+                    );
 
 
                 if (!match) {
+
                     throw new Error(
-                        "Nie rozpoznano odpowiedzi Google Sheets."
+                        "Nieprawidłowa odpowiedź Google Sheets."
                     );
+
                 }
 
 
-                const data = JSON.parse(match[1]);
+                const data =
+                    JSON.parse(match[1]);
 
-
-                /*
-                 * Sprawdzamy, czy Google faktycznie
-                 * zwrócił tabelę.
-                 */
 
                 if (
                     !data.table ||
                     !Array.isArray(data.table.rows)
                 ) {
+
                     throw new Error(
-                        "Google Sheets nie zwrócił tabeli."
+                        "Brak danych tabeli."
                     );
+
                 }
 
 
+
                 /*
-                 * Tworzymy obiekt:
-                 *
-                 * status     -> W eterze
-                 * updated    -> 13.08.2026, 15:20
-                 * frequency  -> 145.500
-                 * network    -> FM-LINK
-                 * qth        -> Łódź
+                 * ======================================
+                 * ODCZYT DANYCH
+                 * ======================================
                  */
 
                 const values = {};
 
 
-                for (const row of data.table.rows) {
+                for (
+                    const row of data.table.rows
+                ) {
+
 
                     if (
                         !row.c ||
                         !row.c[0] ||
                         !row.c[1]
                     ) {
+
                         continue;
+
                     }
 
 
@@ -272,25 +309,26 @@
                         row.c[0].v;
 
 
-                    /*
-                     * 'f' to sformatowana wartość komórki.
-                     * Jeżeli jej nie ma, używamy 'v'.
-                     */
-
                     const value =
                         row.c[1].f ??
                         row.c[1].v;
 
 
-                    if (key !== null && key !== undefined) {
+                    if (
+                        key !== null &&
+                        key !== undefined
+                    ) {
 
                         values[
-                            String(key).trim().toLowerCase()
+                            String(key)
+                                .trim()
+                                .toLowerCase()
                         ] = value;
 
                     }
 
                 }
+
 
 
                 /*
@@ -299,33 +337,162 @@
                  * ======================================
                  */
 
-                document.getElementById("status").textContent =
+                document
+                    .getElementById("status")
+                    .textContent =
                     values.status || "---";
 
 
-                document.getElementById("updated").textContent =
+                document
+                    .getElementById("updated")
+                    .textContent =
                     values.updated || "---";
 
 
-                document.getElementById("frequency").textContent =
+                document
+                    .getElementById("frequency")
+                    .textContent =
                     values.frequency || "---";
 
 
-                document.getElementById("network").textContent =
+                document
+                    .getElementById("network")
+                    .textContent =
                     values.network || "---";
 
 
-                document.getElementById("qth").textContent =
+                document
+                    .getElementById("qth")
+                    .textContent =
                     values.qth || "---";
 
 
+
                 /*
-                 * Wszystko działa.
-                 * Usuwamy ewentualny komunikat błędu.
+                 * ======================================
+                 * ZARZĄDZANIE WIDOCZNOŚCIĄ
+                 * ======================================
+                 */
+
+                const frequencyCard =
+                    document.getElementById(
+                        "frequencyCard"
+                    );
+
+
+                const networkCard =
+                    document.getElementById(
+                        "networkCard"
+                    );
+
+
+                const qthCard =
+                    document.getElementById(
+                        "qthCard"
+                    );
+
+
+                /*
+                 * Pobieramy aktualny status.
+                 *
+                 * trim() usuwa przypadkowe spacje.
+                 * toUpperCase() sprawia, że wielkość
+                 * liter nie ma znaczenia.
+                 */
+
+                const status =
+                    String(values.status || "")
+                        .trim()
+                        .toUpperCase();
+
+
+
+                /*
+                 * ======================================
+                 * DOMYŚLNIE WSZYSTKO WIDOCZNE
+                 * ======================================
+                 */
+
+                frequencyCard.style.display =
+                    "";
+
+                networkCard.style.display =
+                    "";
+
+                qthCard.style.display =
+                    "";
+
+
+
+                /*
+                 * ======================================
+                 * SCAN VHF/UHF
+                 * SCAN KF
+                 * POZA NASŁUCHEM
+                 *
+                 * Ukrywamy:
+                 * - częstotliwość
+                 * - sieć
+                 *
+                 * QTH pozostaje.
+                 * ======================================
+                 */
+
+                if (
+
+                    status === "SCAN: VHF/UHF" ||
+
+                    status === "SCAN: KF" ||
+
+                    status === "POZA NASŁUCHEM"
+
+                ) {
+
+                    frequencyCard.style.display =
+                        "none";
+
+                    networkCard.style.display =
+                        "none";
+
+                }
+
+
+
+                /*
+                 * ======================================
+                 * NIEDOSTĘPNY
+                 *
+                 * Ukrywamy:
+                 * - częstotliwość
+                 * - sieć
+                 * - QTH
+                 * ======================================
+                 */
+
+                if (
+                    status === "NIEDOSTĘPNY"
+                ) {
+
+                    frequencyCard.style.display =
+                        "none";
+
+                    networkCard.style.display =
+                        "none";
+
+                    qthCard.style.display =
+                        "none";
+
+                }
+
+
+
+                /*
+                 * Informacja dla programisty
+                 * w konsoli przeglądarki.
                  */
 
                 console.log(
-                    "SP7KJR STATUS: dane pobrane poprawnie.",
+                    "SP7KJR STATUS OK:",
                     values
                 );
 
@@ -334,47 +501,89 @@
 
             catch (error) {
 
+
                 console.error(
                     "SP7KJR STATUS ERROR:",
                     error
                 );
 
 
-                document.getElementById("status").textContent =
+                /*
+                 * Jeśli Google Sheets nie odpowiada,
+                 * pokazujemy błąd zamiast pustej strony.
+                 */
+
+                document
+                    .getElementById("status")
+                    .textContent =
                     "Nie można pobrać statusu";
 
 
-                document.getElementById("updated").textContent =
+                document
+                    .getElementById("updated")
+                    .textContent =
                     "---";
 
 
-                document.getElementById("frequency").textContent =
+                document
+                    .getElementById("frequency")
+                    .textContent =
                     "---";
 
 
-                document.getElementById("network").textContent =
+                document
+                    .getElementById("network")
+                    .textContent =
                     "---";
 
 
-                document.getElementById("qth").textContent =
+                document
+                    .getElementById("qth")
+                    .textContent =
                     "---";
+
+
+                /*
+                 * Przy błędzie pokazujemy wszystkie
+                 * pola ponownie.
+                 */
+
+                document
+                    .getElementById("frequencyCard")
+                    .style.display = "";
+
+
+                document
+                    .getElementById("networkCard")
+                    .style.display = "";
+
+
+                document
+                    .getElementById("qthCard")
+                    .style.display = "";
 
             }
 
         }
 
 
+
         /*
          * ==========================================
-         * START
+         * PIERWSZE URUCHOMIENIE
          * ==========================================
          */
 
         loadRadioStatus();
 
 
+
         /*
-         * Odświeżamy dane automatycznie co 60 sekund.
+         * ==========================================
+         * AUTOMATYCZNE ODŚWIEŻANIE
+         *
+         * Co 60 sekund.
+         * ==========================================
          */
 
         setInterval(
@@ -382,7 +591,9 @@
             60 * 1000
         );
 
+
     </script>
 
 </body>
+
 </html>
