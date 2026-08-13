@@ -7,53 +7,66 @@
     <title>SP7KJR - Status radiowy</title>
 
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
             background: #111;
-            color: white;
-            text-align: center;
+            color: #fff;
+            display: flex;
+            justify-content: center;
         }
 
         .container {
+            width: 100%;
             max-width: 600px;
-            margin: 60px auto;
-            padding: 30px;
+            padding: 50px 20px;
+            text-align: center;
         }
 
         h1 {
+            margin: 0;
             font-size: 42px;
-            margin-bottom: 5px;
+            font-weight: 700;
         }
 
         .subtitle {
-            color: #999;
+            margin-top: 8px;
             margin-bottom: 40px;
-            font-size: 18px;
+            color: #888;
+            font-size: 17px;
+            letter-spacing: 1px;
         }
 
         .status {
+            margin-bottom: 35px;
             font-size: 34px;
-            font-weight: bold;
-            margin: 30px 0;
+            font-weight: 700;
         }
 
-        .info {
+        .card {
             background: #1c1c1c;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 15px;
         }
 
         .label {
-            color: #999;
-            font-size: 15px;
-            margin-bottom: 7px;
+            margin-bottom: 8px;
+            color: #888;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .value {
             font-size: 24px;
-            font-weight: bold;
+            font-weight: 700;
+            word-break: break-word;
         }
 
         .frequency {
@@ -65,92 +78,311 @@
             color: #666;
             font-size: 14px;
         }
+
+        .error {
+            color: #ff6b6b;
+            font-size: 18px;
+        }
     </style>
 </head>
 
 <body>
 
-<div class="container">
+    <main class="container">
 
-    <h1>📡 SP7KJR</h1>
+        <h1>📡 SP7KJR</h1>
 
-    <div class="subtitle">
-        STATUS RADIOWY
-    </div>
+        <div class="subtitle">
+            STATUS RADIOWY
+        </div>
 
-    <div class="status" id="status">
-        Ładowanie...
-    </div>
+        <div class="status" id="status">
+            Ładowanie...
+        </div>
 
-    <div class="info">
-        <div class="label">OSTATNIA AKTUALIZACJA</div>
-        <div class="value" id="updated">---</div>
-    </div>
+        <div class="card">
+            <div class="label">
+                OSTATNIA AKTUALIZACJA
+            </div>
 
-    <div class="info">
-        <div class="label">CZĘSTOTLIWOŚĆ / ZNAK PRZEMIENNIKA</div>
-        <div class="value frequency" id="frequency">---</div>
-    </div>
+            <div class="value" id="updated">
+                ---
+            </div>
+        </div>
 
-    <div class="info">
-        <div class="label">SIEĆ</div>
-        <div class="value" id="network">---</div>
-    </div>
+        <div class="card">
+            <div class="label">
+                CZĘSTOTLIWOŚĆ / ZNAK PRZEMIENNIKA
+            </div>
 
-    <div class="info">
-        <div class="label">QTH</div>
-        <div class="value" id="qth">---</div>
-    </div>
+            <div class="value frequency" id="frequency">
+                ---
+            </div>
+        </div>
 
-    <div class="footer">
-        SP7KJR • Krótkofalarstwo
-    </div>
+        <div class="card">
+            <div class="label">
+                SIEĆ
+            </div>
 
-</div>
+            <div class="value" id="network">
+                ---
+            </div>
+        </div>
 
-<script>
+        <div class="card">
+            <div class="label">
+                QTH
+            </div>
 
-const sheetID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
+            <div class="value" id="qth">
+                ---
+            </div>
+        </div>
 
-const url =
-"https://docs.google.com/spreadsheets/d/" +
-sheetID +
-"/gviz/tq?tqx=out:json";
+        <div class="footer">
+            SP7KJR • Krótkofalarstwo
+        </div>
 
-fetch(url)
-.then(response => response.text())
-.then(data => {
+    </main>
 
-    const json = JSON.parse(
-        data.substring(47).slice(0, -2)
-    );
 
-    const rows = json.table.rows;
+    <script>
 
-    document.getElementById("status").innerText =
-    rows[1].c[1].v;
+        /*
+         * ==========================================
+         * KONFIGURACJA
+         * ==========================================
+         */
 
-document.getElementById("updated").innerText =
-    rows[2].c[1].v;
+        const SHEET_ID =
+            "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
 
-document.getElementById("frequency").innerText =
-    rows[3].c[1].v;
 
-document.getElementById("network").innerText =
-    rows[4].c[1].v;
+        /*
+         * ==========================================
+         * ADRES GOOGLE SHEETS
+         * ==========================================
+         */
 
-document.getElementById("qth").innerText =
-    rows[5].c[1].v;
+        const SHEET_URL =
+            "https://docs.google.com/spreadsheets/d/" +
+            SHEET_ID +
+            "/gviz/tq?tqx=out:json&headers=1&range=A:B";
 
-})
-.catch(error => {
 
-    document.getElementById("status").innerText =
-        "Nie można pobrać statusu";
+        /*
+         * ==========================================
+         * FUNKCJA POBIERAJĄCA DANE
+         * ==========================================
+         */
 
-});
+        async function loadRadioStatus() {
 
-</script>
+            try {
+
+                /*
+                 * Dodajemy losowy parametr,
+                 * żeby przeglądarka nie użyła starej kopii danych.
+                 */
+
+                const url =
+                    SHEET_URL +
+                    "&cache=" +
+                    Date.now();
+
+
+                const response = await fetch(url);
+
+
+                if (!response.ok) {
+                    throw new Error(
+                        "Google Sheets zwrócił błąd HTTP " +
+                        response.status
+                    );
+                }
+
+
+                const text = await response.text();
+
+
+                /*
+                 * Google zwraca dane jako:
+                 *
+                 * google.visualization.Query.setResponse({...});
+                 *
+                 * Wyciągamy z tego samo JSON.
+                 */
+
+                const match = text.match(
+                    /google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/
+                );
+
+
+                if (!match) {
+                    throw new Error(
+                        "Nie rozpoznano odpowiedzi Google Sheets."
+                    );
+                }
+
+
+                const data = JSON.parse(match[1]);
+
+
+                /*
+                 * Sprawdzamy, czy Google faktycznie
+                 * zwrócił tabelę.
+                 */
+
+                if (
+                    !data.table ||
+                    !Array.isArray(data.table.rows)
+                ) {
+                    throw new Error(
+                        "Google Sheets nie zwrócił tabeli."
+                    );
+                }
+
+
+                /*
+                 * Tworzymy obiekt:
+                 *
+                 * status     -> W eterze
+                 * updated    -> 13.08.2026, 15:20
+                 * frequency  -> 145.500
+                 * network    -> FM-LINK
+                 * qth        -> Łódź
+                 */
+
+                const values = {};
+
+
+                for (const row of data.table.rows) {
+
+                    if (
+                        !row.c ||
+                        !row.c[0] ||
+                        !row.c[1]
+                    ) {
+                        continue;
+                    }
+
+
+                    const key =
+                        row.c[0].v;
+
+
+                    /*
+                     * 'f' to sformatowana wartość komórki.
+                     * Jeżeli jej nie ma, używamy 'v'.
+                     */
+
+                    const value =
+                        row.c[1].f ??
+                        row.c[1].v;
+
+
+                    if (key !== null && key !== undefined) {
+
+                        values[
+                            String(key).trim().toLowerCase()
+                        ] = value;
+
+                    }
+
+                }
+
+
+                /*
+                 * ======================================
+                 * WYŚWIETLANIE DANYCH
+                 * ======================================
+                 */
+
+                document.getElementById("status").textContent =
+                    values.status || "---";
+
+
+                document.getElementById("updated").textContent =
+                    values.updated || "---";
+
+
+                document.getElementById("frequency").textContent =
+                    values.frequency || "---";
+
+
+                document.getElementById("network").textContent =
+                    values.network || "---";
+
+
+                document.getElementById("qth").textContent =
+                    values.qth || "---";
+
+
+                /*
+                 * Wszystko działa.
+                 * Usuwamy ewentualny komunikat błędu.
+                 */
+
+                console.log(
+                    "SP7KJR STATUS: dane pobrane poprawnie.",
+                    values
+                );
+
+            }
+
+
+            catch (error) {
+
+                console.error(
+                    "SP7KJR STATUS ERROR:",
+                    error
+                );
+
+
+                document.getElementById("status").textContent =
+                    "Nie można pobrać statusu";
+
+
+                document.getElementById("updated").textContent =
+                    "---";
+
+
+                document.getElementById("frequency").textContent =
+                    "---";
+
+
+                document.getElementById("network").textContent =
+                    "---";
+
+
+                document.getElementById("qth").textContent =
+                    "---";
+
+            }
+
+        }
+
+
+        /*
+         * ==========================================
+         * START
+         * ==========================================
+         */
+
+        loadRadioStatus();
+
+
+        /*
+         * Odświeżamy dane automatycznie co 60 sekund.
+         */
+
+        setInterval(
+            loadRadioStatus,
+            60 * 1000
+        );
+
+    </script>
 
 </body>
 </html>
