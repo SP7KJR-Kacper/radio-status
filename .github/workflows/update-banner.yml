@@ -3,79 +3,10 @@ name: Aktualizacja statusu SP7KJR
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  update-banner:
+  test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Pobierz repozytorium
-        uses: actions/checkout@v4
-
-      - name: Pobierz dane
-        run: |
-          curl -L "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&sheet=Dane&range=A1:B10" -o data.csv
-          echo "===== DANE ====="
-          cat data.csv
-          echo "================"
-
-      - name: Utwórz baner
-        run: |
-          python3 - <<'PY'
-          import csv
-          import html
-
-          data = {}
-
-          with open("data.csv", encoding="utf-8-sig", newline="") as f:
-              reader = csv.reader(f)
-              for row in reader:
-                  if len(row) >= 2:
-                      data[row[0].strip().lower()] = row[1].strip()
-
-          status = html.escape(data.get("status", "---"))
-          updated = html.escape(data.get("updated", "---"))
-          frequency = html.escape(data.get("frequency", "---"))
-          network = html.escape(data.get("network", "---"))
-          qth = html.escape(data.get("qth", "---"))
-
-          svg = """<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
-          <rect width="900" height="300" rx="30" fill="#111111"/>
-          <text x="50" y="65" fill="white" font-family="Arial" font-size="38" font-weight="bold">SP7KJR</text>
-          <text x="50" y="105" fill="#888888" font-family="Arial" font-size="18">STATUS RADIOWY</text>
-          <text x="50" y="165" fill="white" font-family="Arial" font-size="34" font-weight="bold">STATUS_PLACEHOLDER</text>
-          <text x="50" y="215" fill="#aaaaaa" font-family="Arial" font-size="22">FREQUENCY_PLACEHOLDER • NETWORK_PLACEHOLDER</text>
-          <text x="50" y="255" fill="#aaaaaa" font-family="Arial" font-size="20">QTH: QTH_PLACEHOLDER • UPDATED_PLACEHOLDER</text>
-          </svg>"""
-
-          svg = svg.replace("STATUS_PLACEHOLDER", status)
-          svg = svg.replace("FREQUENCY_PLACEHOLDER", frequency)
-          svg = svg.replace("NETWORK_PLACEHOLDER", network)
-          svg = svg.replace("QTH_PLACEHOLDER", qth)
-          svg = svg.replace("UPDATED_PLACEHOLDER", updated)
-
-          with open("banner/status.svg", "w", encoding="utf-8") as f:
-              f.write(svg)
-
-          print("STATUS:", status)
-          print("UPDATED:", updated)
-          print("FREQUENCY:", frequency)
-          print("NETWORK:", network)
-          print("QTH:", qth)
-          PY
-
-      - name: Zapisz baner
-        run: |
-          git config user.name "SP7KJR Status Bot"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add banner/status.svg
-
-          if git diff --cached --quiet; then
-            echo "Brak zmian."
-          else
-            git commit -m "Aktualizacja statusu radiowego"
-            git push
-          fi
+      - name: Test GitHub Actions
+        run: echo "SP7KJR działa"
