@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SP7KJR - Status radiowy</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 80px auto;
+            padding: 30px;
+        }
+
+        h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #aaa;
+            margin-bottom: 40px;
+        }
+
+        .status {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 25px 0;
+        }
+
+        .frequency {
+            font-size: 42px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .mode {
+            font-size: 24px;
+            color: #ccc;
+        }
+
+        .info {
+            margin-top: 40px;
+            color: #888;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📡 SP7KJR</h1>
+
+    <div class="subtitle">
+        STATUS RADIOWY
+    </div>
+
+    <div class="status" id="status">
+        Ładowanie...
+    </div>
+
+    <div class="frequency" id="frequency">
+        ---
+    </div>
+
+    <div class="mode" id="mode">
+        ---
+    </div>
+
+    <div class="info">
+        QTH: JO91RR
+    </div>
+
+</div>
+
+<script>
+
+const sheetID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
+
+const url =
+"https://docs.google.com/spreadsheets/d/" +
+sheetID +
+"/gviz/tq?tqx=out:json";
+
+fetch(url)
+.then(response => response.text())
+.then(data => {
+
+    const json = JSON.parse(
+        data.substring(47).slice(0, -2)
+    );
+
+    const rows = json.table.rows;
+
+    document.getElementById("status").innerText =
+        rows[0].c[1].v;
+
+    document.getElementById("frequency").innerText =
+        rows[1].c[1].v;
+
+    document.getElementById("mode").innerText =
+        rows[2].c[1].v;
+
+})
+.catch(error => {
+
+    document.getElementById("status").innerText =
+        "Nie można pobrać statusu";
+
+});
+
+</script>
+
+</body>
+</html>
