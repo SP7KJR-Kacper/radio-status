@@ -1,43 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg"
-width="900" height="300" viewBox="0 0 900 300">
-
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
 <rect width="900" height="300" rx="30" fill="#111111"/>
-
-<text x="50" y="65"
-      fill="white"
-      font-family="Arial"
-      font-size="38"
-      font-weight="bold">
-📡 SP7KJR
-</text>
-
-<text x="50" y="105"
-      fill="#888888"
-      font-family="Arial"
-      font-size="18">
-STATUS RADIOWY
-</text>
-
-<text x="50" y="165"
-      fill="white"
-      font-family="Arial"
-      font-size="34"
-      font-weight="bold">
----
-</text>
-
-<text x="50" y="215"
-      fill="#aaaaaa"
-      font-family="Arial"
-      font-size="22">
-SR7LD • Echolink
-</text>
-
-<text x="50" y="255"
-      fill="#aaaaaa"
-      font-family="Arial"
-      font-size="20">
-QTH: Lodz • 13.08.2026, 17:22
-</text>
-
+<text x="50" y="65" fill="white" font-family="Arial" font-size="38" font-weight="bold">SP7KJR</text>
+<text x="50" y="105" fill="#888888" font-family="Arial" font-size="18">STATUS RADIOWY</text>
+<text x="50" y="165" fill="white" font-family="Arial" font-size="34" font-weight="bold">---</text>
+<text x="50" y="215" fill="#aaaaaa" font-family="Arial" font-size="22">SR7LD • Echolink</text>
+<text x="50" y="255" fill="#aaaaaa" font-family="Arial" font-size="20">QTH: Lodz • 13.08.2026, 17:22</text>
 </svg>
