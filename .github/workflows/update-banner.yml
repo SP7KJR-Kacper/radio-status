@@ -92,6 +92,8 @@ jobs:
 
           git add banner/status.svg
 
-          git diff --cached --quiet || git commit -m "Aktualizacja statusu"
+          git commit -m "Aktualizacja statusu" || echo "Brak zmian"
 
-          git push
+          git pull --rebase origin main
+
+          git push origin main
