@@ -17,7 +17,7 @@ jobs:
 
       - name: Pobierz dane z Google Sheets
         run: |
-          curl -L "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&sheet=Dane" -o data.csv
+          curl -L "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&sheet=Dane&range=B2:B6" -o data.csv
 
           echo "===== GOOGLE SHEETS ====="
           cat data.csv
@@ -29,60 +29,96 @@ jobs:
           import csv
           import html
 
-          data = {}
+          values = []
 
           with open("data.csv", encoding="utf-8-sig", newline="") as f:
-              for row in csv.reader(f):
-                  if len(row) >= 2:
-                      key = row[0].strip().lower()
-                      value = row[1].strip()
-                      data[key] = value
+              reader = csv.reader(f)
 
-          status = html.escape(data.get("status", "---"))
-          updated = html.escape(data.get("updated", "---"))
-          frequency = html.escape(data.get("frequency", "---"))
-          network = html.escape(data.get("network", "---"))
-          qth = html.escape(data.get("qth", "---"))
+              for row in reader:
+                  if len(row) > 0:
+                      values.append(row[0].strip())
 
-          svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
-          <rect width="900" height="300" rx="30" fill="#111111"/>
+          while len(values) < 5:
+              values.append("---")
 
-          <text x="50" y="65"
-                fill="white"
-                font-family="Arial"
-                font-size="38"
-                font-weight="bold">SP7KJR</text>
-
-          <text x="50" y="105"
-                fill="#888888"
-                font-family="Arial"
-                font-size="18">STATUS RADIOWY</text>
-
-          <text x="50" y="165"
-                fill="white"
-                font-family="Arial"
-                font-size="34"
-                font-weight="bold">{status}</text>
-
-          <text x="50" y="215"
-                fill="#aaaaaa"
-                font-family="Arial"
-                font-size="22">{frequency} • {network}</text>
-
-          <text x="50" y="255"
-                fill="#aaaaaa"
-                font-family="Arial"
-                font-size="20">QTH: {qth} • {updated}</text>
-          </svg>'''
-
-          with open("banner/status.svg", "w", encoding="utf-8") as f:
-              f.write(svg)
+          status = html.escape(values[0])
+          updated = html.escape(values[1])
+          frequency = html.escape(values[2])
+          network = html.escape(values[3])
+          qth = html.escape(values[4])
 
           print("STATUS:", status)
           print("UPDATED:", updated)
           print("FREQUENCY:", frequency)
           print("NETWORK:", network)
           print("QTH:", qth)
+
+          svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="900"
+     height="300"
+     viewBox="0 0 900 300">
+
+  <rect
+      width="900"
+      height="300"
+      rx="30"
+      fill="#111111"/>
+
+  <text
+      x="50"
+      y="65"
+      fill="#ffffff"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="38"
+      font-weight="bold">
+    SP7KJR
+  </text>
+
+  <text
+      x="50"
+      y="105"
+      fill="#888888"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="18">
+    STATUS RADIOWY
+  </text>
+
+  <text
+      x="50"
+      y="165"
+      fill="#ffffff"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="34"
+      font-weight="bold">
+    {status}
+  </text>
+
+  <text
+      x="50"
+      y="215"
+      fill="#aaaaaa"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="22">
+    {frequency} • {network}
+  </text>
+
+  <text
+      x="50"
+      y="255"
+      fill="#aaaaaa"
+      font-family="Arial, Helvetica, sans-serif"
+      font-size="20">
+    QTH: {qth} • {updated}
+  </text>
+
+</svg>
+'''
+
+          with open("banner/status.svg", "w", encoding="utf-8") as f:
+              f.write(svg)
+
           PY
 
       - name: Zapisz baner
@@ -92,7 +128,7 @@ jobs:
 
           git add banner/status.svg
 
-          git commit -m "Aktualizacja statusu" || echo "Brak zmian"
+          git diff --cached --quiet || git commit -m "Aktualizacja statusu"
 
           git pull --rebase origin main
 
