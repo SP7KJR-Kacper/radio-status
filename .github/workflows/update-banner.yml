@@ -3,10 +3,12 @@ name: Aktualizacja statusu SP7KJR
 on:
   schedule:
     - cron: "*/5 * * * *"
+
   workflow_dispatch:
 
 permissions:
   contents: write
+
 
 jobs:
   update-banner:
@@ -18,89 +20,248 @@ jobs:
       - name: Pobierz repozytorium
         uses: actions/checkout@v4
 
+
       - name: Pobierz dane z Google Sheets
         run: |
           curl -L \
-          "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&range=A:B" \
+          "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&range=A1:B6" \
           -o data.csv
+
+          echo "===== DANE Z GOOGLE SHEETS ====="
+          cat data.csv
+          echo "================================"
+
 
       - name: Utwórz baner
         run: |
+
           python3 <<'PY'
+
           import csv
           import html
 
+
+          # ==========================================
+          # ODCZYT GOOGLE SHEETS
+          # ==========================================
+
           data = {}
 
-          with open("data.csv", encoding="utf-8") as f:
-              reader = csv.reader(f)
+
+          with open(
+              "data.csv",
+              encoding="utf-8-sig",
+              newline=""
+          ) as file:
+
+              reader = csv.reader(file)
 
               for row in reader:
-                  if len(row) >= 2:
-                      data[row[0].strip().lower()] = row[1].strip()
 
-          status = html.escape(data.get("status", "---"))
-          updated = html.escape(data.get("updated", "---"))
-          frequency = html.escape(data.get("frequency", "---"))
-          network = html.escape(data.get("network", "---"))
-          qth = html.escape(data.get("qth", "---"))
+                  if len(row) < 2:
+                      continue
 
-          svg = f'''<svg xmlns="http://www.w3.org/2000/svg"
-          width="900" height="300" viewBox="0 0 900 300">
+                  key = row[0].strip().lower()
+                  value = row[1].strip()
 
-          <rect width="900" height="300" rx="30" fill="#111111"/>
+                  # Pomijamy nagłówek
+                  if key == "pole":
+                      continue
 
-          <text x="50" y="65"
-                fill="white"
-                font-family="Arial"
-                font-size="38"
-                font-weight="bold">
-          📡 SP7KJR
-          </text>
+                  data[key] = value
 
-          <text x="50" y="105"
-                fill="#888888"
-                font-family="Arial"
-                font-size="18">
-          STATUS RADIOWY
-          </text>
 
-          <text x="50" y="165"
-                fill="white"
-                font-family="Arial"
-                font-size="34"
-                font-weight="bold">
-          {status}
-          </text>
+          # ==========================================
+          # DANE
+          # ==========================================
 
-          <text x="50" y="215"
-                fill="#aaaaaa"
-                font-family="Arial"
-                font-size="22">
-          {frequency} • {network}
-          </text>
+          status = data.get(
+              "status",
+              "---"
+          )
 
-          <text x="50" y="255"
-                fill="#aaaaaa"
-                font-family="Arial"
-                font-size="20">
-          QTH: {qth} • {updated}
-          </text>
+          updated = data.get(
+              "updated",
+              "---"
+          )
 
-          </svg>'''
+          frequency = data.get(
+              "frequency",
+              "---"
+          )
 
-          with open("banner/status.svg", "w", encoding="utf-8") as f:
-              f.write(svg)
+          network = data.get(
+              "network",
+              "---"
+          )
+
+          qth = data.get(
+              "qth",
+              "---"
+          )
+
+
+          # Zabezpieczenie tekstu dla SVG
+
+          status = html.escape(status)
+          updated = html.escape(updated)
+          frequency = html.escape(frequency)
+          network = html.escape(network)
+          qth = html.escape(qth)
+
+
+          # ==========================================
+          # BANER SVG
+          # ==========================================
+
+          svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+
+<svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="900"
+    height="300"
+    viewBox="0 0 900 300">
+
+
+    <!-- TŁO -->
+
+    <rect
+        x="0"
+        y="0"
+        width="900"
+        height="300"
+        rx="30"
+        fill="#111111"/>
+
+
+    <!-- TYTUŁ -->
+
+    <text
+        x="50"
+        y="65"
+        fill="#ffffff"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="38"
+        font-weight="bold">
+
+        SP7KJR
+
+    </text>
+
+
+    <!-- PODTYTUŁ -->
+
+    <text
+        x="50"
+        y="105"
+        fill="#888888"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18">
+
+        STATUS RADIOWY
+
+    </text>
+
+
+    <!-- STATUS -->
+
+    <text
+        x="50"
+        y="165"
+        fill="#ffffff"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="34"
+        font-weight="bold">
+
+        {status}
+
+    </text>
+
+
+    <!-- CZĘSTOTLIWOŚĆ I SIEĆ -->
+
+    <text
+        x="50"
+        y="215"
+        fill="#aaaaaa"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="22">
+
+        {frequency} • {network}
+
+    </text>
+
+
+    <!-- QTH I CZAS -->
+
+    <text
+        x="50"
+        y="255"
+        fill="#aaaaaa"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="20">
+
+        QTH: {qth} • {updated}
+
+    </text>
+
+
+</svg>
+'''
+
+
+          # ==========================================
+          # ZAPIS PLIKU
+          # ==========================================
+
+          with open(
+              "banner/status.svg",
+              "w",
+              encoding="utf-8"
+          ) as file:
+
+              file.write(svg)
+
+
+          # ==========================================
+          # INFORMACJE W LOGACH GITHUB ACTIONS
+          # ==========================================
+
+          print("")
+          print("================================")
+          print("STATUS:", status)
+          print("UPDATED:", updated)
+          print("FREQUENCY:", frequency)
+          print("NETWORK:", network)
+          print("QTH:", qth)
+          print("================================")
+          print("BANER UTWORZONY")
+          print("")
+
+
           PY
 
-      - name: Zapisz baner
+
+      - name: Zapisz baner w GitHub
         run: |
+
           git config user.name "SP7KJR Status Bot"
-          git config user.email "actions@github.com"
+
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
 
           git add banner/status.svg
 
-          git diff --cached --quiet || \
-          git commit -m "Aktualizacja statusu radiowego"
 
-          git push
+          if git diff --cached --quiet; then
+
+            echo "Brak zmian w banerze."
+
+          else
+
+            git commit \
+              -m "Aktualizacja statusu radiowego"
+
+            git push
+
+          fi
