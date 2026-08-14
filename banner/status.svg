@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
+  <rect width="900" height="300" rx="30" fill="#111111"/>
+
+  <text x="50" y="60"
+        fill="white"
+        font-family="Arial"
+        font-size="38"
+        font-weight="bold">
+    SP7KJR
+  </text>
+
+  <text x="50" y="95"
+        fill="#888888"
+        font-family="Arial"
+        font-size="18">
+    STATUS RADIOWY
+  </text>
+
+  <text x="50" y="155"
+        fill="white"
+        font-family="Arial"
+        font-size="34"
+        font-weight="bold">
+    Poza nasłuchem
+  </text>
+
+  <text x="50" y="205"
+        fill="#aaaaaa"
+        font-family="Arial"
+        font-size="22">
+    SR7LDZ • FM-LINK
+  </text>
+
+  <text x="50" y="250"
+        fill="#aaaaaa"
+        font-family="Arial"
+        font-size="20">
+    QTH: Lodz Dom • 13.08.2026, 22:05
+  </text>
+</svg>
