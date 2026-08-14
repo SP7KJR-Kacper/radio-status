@@ -1,0 +1,121 @@
+name: Aktualizacja statusu SP7KJR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-banner:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Pobierz repozytorium
+        uses: actions/checkout@v4
+
+      - name: Pobierz dane z Google Sheets
+        run: |
+          curl -L "https://docs.google.com/spreadsheets/d/1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc/gviz/tq?tqx=out:csv&sheet=Dane&range=B2:B6" -o data.csv
+
+          echo "===== DANE Z GOOGLE SHEETS ====="
+          cat data.csv
+          echo "================================"
+
+      - name: Utwórz status.svg
+        run: |
+          python3 -c '
+          import csv
+          import html
+
+          with open("data.csv", encoding="utf-8-sig", newline="") as f:
+              values = [row[0].strip() for row in csv.reader(f) if row]
+
+          while len(values) < 5:
+              values.append("---")
+
+          status = html.escape(values[0])
+          updated = html.escape(values[1])
+          frequency = html.escape(values[2])
+          network = html.escape(values[3])
+          qth = html.escape(values[4])
+
+          svg = """<?xml version="1.0" encoding="UTF-8"?>
+          <svg xmlns="http://www.w3.org/2000/svg" width="900" height="300">
+            <rect width="900" height="300" rx="30" fill="#111111"/>
+
+            <text x="50" y="60"
+                  fill="white"
+                  font-family="Arial"
+                  font-size="38"
+                  font-weight="bold">
+              SP7KJR
+            </text>
+
+            <text x="50" y="95"
+                  fill="#888888"
+                  font-family="Arial"
+                  font-size="18">
+              STATUS RADIOWY
+            </text>
+
+            <text x="50" y="155"
+                  fill="white"
+                  font-family="Arial"
+                  font-size="34"
+                  font-weight="bold">
+              STATUS_VALUE
+            </text>
+
+            <text x="50" y="205"
+                  fill="#aaaaaa"
+                  font-family="Arial"
+                  font-size="22">
+              FREQUENCY_VALUE • NETWORK_VALUE
+            </text>
+
+            <text x="50" y="250"
+                  fill="#aaaaaa"
+                  font-family="Arial"
+                  font-size="20">
+              QTH: QTH_VALUE • UPDATED_VALUE
+            </text>
+          </svg>
+          """
+
+          svg = svg.replace("STATUS_VALUE", status)
+          svg = svg.replace("FREQUENCY_VALUE", frequency)
+          svg = svg.replace("NETWORK_VALUE", network)
+          svg = svg.replace("QTH_VALUE", qth)
+          svg = svg.replace("UPDATED_VALUE", updated)
+
+          with open("status.svg", "w", encoding="utf-8") as f:
+              f.write(svg)
+
+          print("STATUS:", status)
+          print("UPDATED:", updated)
+          print("FREQUENCY:", frequency)
+          print("NETWORK:", network)
+          print("QTH:", qth)
+          '
+
+      - name: Przygotuj folder
+        run: |
+          mkdir -p banner
+          mv status.svg banner/status.svg
+
+      - name: Zapisz baner
+        run: |
+          git config user.name "SP7KJR Status Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add banner/status.svg
+
+          if git diff --cached --quiet; then
+            echo "Brak zmian."
+          else
+            git commit -m "Aktualizacja statusu radiowego"
+            git pull --rebase origin main
+            git push origin main
+          fi
