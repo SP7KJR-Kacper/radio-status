@@ -335,6 +335,20 @@
 
     .data-card--wide { grid-column: span 2; }
 
+    .dashboard.is-compact .data-card--adaptive {
+      min-height: 118px;
+      padding: 17px 18px;
+    }
+
+    .dashboard.is-compact .data-card--adaptive .card-value {
+      margin-top: 14px;
+      font-size: clamp(18px, 3.5vw, 24px);
+    }
+
+    .dashboard.is-compact .data-card--adaptive .card-label {
+      font-size: 10px;
+    }
+
     .card-label {
       display: flex;
       align-items: center;
@@ -624,18 +638,18 @@
       <p class="connection" id="connection" role="status" aria-live="polite">Connecting to the status sheet</p>
     </section>
 
-    <section class="dashboard" aria-label="Station details">
+    <section class="dashboard" id="dashboard" aria-label="Station details">
       <article class="data-card">
         <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Last updated</p>
         <p class="card-value" id="updated">—</p>
       </article>
 
-      <article class="data-card">
+      <article class="data-card data-card--adaptive" id="networkCard">
         <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Network</p>
         <p class="card-value" id="network">—</p>
       </article>
 
-      <article class="data-card data-card--wide">
+      <article class="data-card data-card--wide data-card--adaptive" id="frequencyCard">
         <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Frequency / repeater</p>
         <p class="card-value" id="frequency">—</p>
       </article>
@@ -716,8 +730,11 @@
       comment: document.getElementById("commentText"),
       commentCard: document.getElementById("commentCard"),
       connection: document.getElementById("connection"),
+      dashboard: document.getElementById("dashboard"),
       frequency: document.getElementById("frequency"),
+      frequencyCard: document.getElementById("frequencyCard"),
       network: document.getElementById("network"),
+      networkCard: document.getElementById("networkCard"),
       notice: document.getElementById("noticeText"),
       noticeCard: document.getElementById("noticeCard"),
       panel: document.getElementById("statusPanel"),
@@ -867,7 +884,33 @@
       return "";
     }
 
-    function applyValues(values) {
+    function getStatusLayout(status) {
+      const text = normaliseKey(status);
+      const containsStatusWord = function (words) {
+        return new RegExp("(^|[^a-z0-9])(" + words + ")(?=$|[^a-z0-9])").test(text);
+      };
+
+      if (containsStatusWord("offline|qrl|dnd|nieaktywny|nieaktywna") || text.includes("do not disturb")) {
+        return "reduced";
+      }
+
+      if (containsStatusWord("scan|skan")) {
+        return "compact";
+      }
+
+      return "full";
+    }
+
+    function setDashboardLayout(status, isConfirmed) {
+      const layout = isConfirmed ? getStatusLayout(status) : "full";
+      const shouldHideConditionalCards = layout === "reduced";
+
+      ui.networkCard.hidden = shouldHideConditionalCards;
+      ui.frequencyCard.hidden = shouldHideConditionalCards;
+      ui.dashboard.classList.toggle("is-compact", layout === "compact");
+    }
+
+    function applyValues(values, isConfirmed) {
       for (const field of STATUS_FIELD_NAMES) {
         ui[field].textContent = safeText(values[field], "—");
       }
@@ -878,6 +921,8 @@
       ui.noticeCard.hidden = !notice;
       ui.comment.textContent = comment;
       ui.commentCard.hidden = !comment;
+
+      setDashboardLayout(values.status, Boolean(isConfirmed));
 
       const statusType = getStatusType(values.status);
       ui.panel.classList.toggle("is-live", statusType === "live");
@@ -953,7 +998,7 @@
 
       try {
         const values = await loadFromSheet();
-        applyValues(values);
+        applyValues(values, true);
         saveCache(values);
         setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
       } catch (error) {
