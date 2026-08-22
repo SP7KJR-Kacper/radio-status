@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pl">
 
@@ -123,7 +124,7 @@
 
         <!-- CZĘSTOTLIWOŚĆ -->
 
-        <div class="card" id="frequencyCard">
+        <div class="card">
 
             <div class="label">
                 CZĘSTOTLIWOŚĆ / ZNAK PRZEMIENNIKA
@@ -138,7 +139,7 @@
 
         <!-- SIEĆ -->
 
-        <div class="card" id="networkCard">
+        <div class="card">
 
             <div class="label">
                 SIEĆ
@@ -153,7 +154,7 @@
 
         <!-- QTH -->
 
-        <div class="card" id="qthCard">
+        <div class="card">
 
             <div class="label">
                 QTH
@@ -175,7 +176,6 @@
 
 
     <script>
-
 
         /*
          * ==========================================
@@ -199,7 +199,6 @@
             "/gviz/tq?tqx=out:json&headers=1&range=A:B";
 
 
-
         /*
          * ==========================================
          * POBIERANIE DANYCH
@@ -209,7 +208,6 @@
         async function loadRadioStatus() {
 
             try {
-
 
                 /*
                  * Zapobiega korzystaniu ze starej
@@ -238,7 +236,6 @@
 
                 const text =
                     await response.text();
-
 
 
                 /*
@@ -279,7 +276,6 @@
                 }
 
 
-
                 /*
                  * ======================================
                  * ODCZYT DANYCH
@@ -292,7 +288,6 @@
                 for (
                     const row of data.table.rows
                 ) {
-
 
                     if (
                         !row.c ||
@@ -330,11 +325,14 @@
                 }
 
 
-
                 /*
                  * ======================================
                  * WYŚWIETLANIE DANYCH
                  * ======================================
+                 *
+                 * Wszystkie pola są zawsze widoczne.
+                 * Ich zawartość zależy wyłącznie od
+                 * danych pobranych z Google Sheets.
                  */
 
                 document
@@ -367,125 +365,6 @@
                     values.qth || "---";
 
 
-
-                /*
-                 * ======================================
-                 * ZARZĄDZANIE WIDOCZNOŚCIĄ
-                 * ======================================
-                 */
-
-                const frequencyCard =
-                    document.getElementById(
-                        "frequencyCard"
-                    );
-
-
-                const networkCard =
-                    document.getElementById(
-                        "networkCard"
-                    );
-
-
-                const qthCard =
-                    document.getElementById(
-                        "qthCard"
-                    );
-
-
-                /*
-                 * Pobieramy aktualny status.
-                 *
-                 * trim() usuwa przypadkowe spacje.
-                 * toUpperCase() sprawia, że wielkość
-                 * liter nie ma znaczenia.
-                 */
-
-                const status =
-                    String(values.status || "")
-                        .trim()
-                        .toUpperCase();
-
-
-
-                /*
-                 * ======================================
-                 * DOMYŚLNIE WSZYSTKO WIDOCZNE
-                 * ======================================
-                 */
-
-                frequencyCard.style.display =
-                    "";
-
-                networkCard.style.display =
-                    "";
-
-                qthCard.style.display =
-                    "";
-
-
-
-                /*
-                 * ======================================
-                 * SCAN VHF/UHF
-                 * SCAN KF
-                 * POZA NASŁUCHEM
-                 *
-                 * Ukrywamy:
-                 * - częstotliwość
-                 * - sieć
-                 *
-                 * QTH pozostaje.
-                 * ======================================
-                 */
-
-                if (
-
-                    status === "SCAN: VHF/UHF" ||
-
-                    status === "SCAN: KF" ||
-
-                    status === "POZA NASŁUCHEM"
-
-                ) {
-
-                    frequencyCard.style.display =
-                        "none";
-
-                    networkCard.style.display =
-                        "none";
-
-                }
-
-
-
-                /*
-                 * ======================================
-                 * NIEDOSTĘPNY
-                 *
-                 * Ukrywamy:
-                 * - częstotliwość
-                 * - sieć
-                 * - QTH
-                 * ======================================
-                 */
-
-                if (
-                    status === "NIEDOSTĘPNY"
-                ) {
-
-                    frequencyCard.style.display =
-                        "none";
-
-                    networkCard.style.display =
-                        "none";
-
-                    qthCard.style.display =
-                        "none";
-
-                }
-
-
-
                 /*
                  * Informacja dla programisty
                  * w konsoli przeglądarki.
@@ -500,7 +379,6 @@
 
 
             catch (error) {
-
 
                 console.error(
                     "SP7KJR STATUS ERROR:",
@@ -542,30 +420,9 @@
                     .textContent =
                     "---";
 
-
-                /*
-                 * Przy błędzie pokazujemy wszystkie
-                 * pola ponownie.
-                 */
-
-                document
-                    .getElementById("frequencyCard")
-                    .style.display = "";
-
-
-                document
-                    .getElementById("networkCard")
-                    .style.display = "";
-
-
-                document
-                    .getElementById("qthCard")
-                    .style.display = "";
-
             }
 
         }
-
 
 
         /*
@@ -575,7 +432,6 @@
          */
 
         loadRadioStatus();
-
 
 
         /*
@@ -591,9 +447,9 @@
             60 * 1000
         );
 
-
     </script>
 
 </body>
 
 </html>
+```
