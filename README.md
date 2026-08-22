@@ -1,28 +1,30 @@
-# SP7KJR · Status radiowy
+# SP7KJR · Radio Status
 
-Lekki, responsywny panel statusu stacji SP7KJR, przeznaczony do publikacji w GitHub Pages. Strona pobiera bieżące dane z publicznego arkusza Google i nie wymaga żadnego serwera ani procesu budowania.
+A lightweight, responsive status dashboard for the SP7KJR amateur radio station. It is designed for GitHub Pages and reads the current information from a public Google Sheet—no server or build step required.
 
-## Dane w arkuszu
+## Sheet data
 
-W zakresie \`A:B\` arkusza użyj w pierwszej kolumnie nazw pola, a w drugiej jego wartości:
+Use column \`A\` for field names and column \`B\` for their values:
 
-| Pole | Obsługiwane nazwy | Przykład |
+| Field | Supported names | Example |
 | --- | --- | --- |
 | Status | \`status\`, \`stan\` | \`ONLINE\`, \`OFFLINE\`, \`QSX (RX/TX)\` |
-| Aktualizacja | \`updated\`, \`ostatnia aktualizacja\`, \`aktualizacja\` | \`22.08.2026, 17:46\` |
-| Częstotliwość | \`frequency\`, \`częstotliwość\`, \`przemiennik\` | \`145.500 FM\` |
-| Sieć | \`network\`, \`sieć\` | \`EchoLink\` |
+| Last updated | \`updated\`, \`ostatnia aktualizacja\`, \`aktualizacja\` | \`22/08/2026, 17:46\` |
+| Frequency | \`frequency\`, \`częstotliwość\`, \`przemiennik\` | \`145.500 FM\` |
+| Network | \`network\`, \`sieć\` | \`EchoLink\` |
 | QTH | \`qth\`, \`lokalizacja\` | \`Łódź\` |
 
-## Niezawodność i bezpieczeństwo
+The dashboard interface is in English. Polish sheet field aliases remain supported for backward compatibility.
 
-- pobieranie danych ma limit czasu 12 s i maksymalnie dwie ponowne próby;
-- odświeżanie automatyczne odbywa się co minutę, a przycisk pozwala uruchomić je ręcznie;
-- ostatnie poprawne dane są zapisywane lokalnie w przeglądarce i zostają wyświetlone, gdy arkusz chwilowo nie odpowiada;
-- dane z arkusza są walidowane i zawsze wstawiane przez \`textContent\`, bez interpretowania HTML;
-- polityka CSP ogranicza połączenia strony do Google Sheets i blokuje osadzanie aktywnej treści z innych źródeł;
-- interfejs ma czytelne statusy połączenia, obsługuje klawiaturę oraz ustawienie ograniczenia animacji systemu.
+## Reliability and security
 
-## Konfiguracja
+- Data requests time out after 12 seconds and are retried up to twice.
+- The page refreshes automatically every minute; visitors can also refresh it manually.
+- The last valid status is stored locally in the browser and shown if the sheet is temporarily unavailable.
+- Sheet values are validated and rendered with \`textContent\`; they are never interpreted as HTML.
+- The Content Security Policy limits network connections to Google Sheets and blocks active content from other sources.
+- The interface provides clear connection states, keyboard-accessible controls, and respects the system reduced-motion preference.
 
-Identyfikator arkusza jest zapisany w stałej \`SHEET_ID\` w [index.html](index.html). Arkusz musi być opublikowany lub udostępniony do odczytu dla odwiedzających stronę.
+## Configuration
+
+The sheet identifier is stored in the \`SHEET_ID\` constant in [index.html](index.html). The sheet must be published or shared for public read access.
