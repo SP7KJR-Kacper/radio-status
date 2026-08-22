@@ -154,6 +154,73 @@
       font-weight: 650;
     }
 
+    .notice-card {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 16px;
+      padding: clamp(21px, 4vw, 30px);
+      border: 1px solid rgba(255, 201, 104, .44);
+      border-left: 4px solid var(--amber);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(77, 55, 20, .78), rgba(32, 28, 22, .92));
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, .05);
+    }
+
+    .notice-card::after {
+      position: absolute;
+      top: -55px;
+      right: -38px;
+      width: 160px;
+      height: 160px;
+      content: "";
+      border: 1px solid rgba(255, 201, 104, .2);
+      border-radius: 50%;
+      box-shadow: 0 0 0 20px rgba(255, 201, 104, .035);
+      pointer-events: none;
+    }
+
+    .notice-label,
+    .comment-label {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin: 0;
+      color: var(--amber);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      line-height: 1.25;
+      text-transform: uppercase;
+    }
+
+    .notice-label::before {
+      display: inline-grid;
+      width: 23px;
+      height: 23px;
+      content: "!";
+      place-items: center;
+      border: 1px solid rgba(255, 201, 104, .38);
+      border-radius: 7px;
+      background: rgba(255, 201, 104, .11);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .notice-value {
+      position: relative;
+      z-index: 1;
+      max-width: 34ch;
+      margin: 13px 0 0;
+      color: var(--text);
+      font-size: clamp(23px, 4.7vw, 37px);
+      font-weight: 730;
+      letter-spacing: -.03em;
+      line-height: 1.16;
+      overflow-wrap: anywhere;
+    }
+
     .status-panel {
       position: relative;
       overflow: hidden;
@@ -303,6 +370,34 @@
       font-variant-numeric: tabular-nums;
     }
 
+    .comment-card {
+      margin-top: 20px;
+      padding: 18px 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(10, 18, 29, .68);
+    }
+
+    .comment-label {
+      color: var(--muted);
+    }
+
+    .comment-label::before {
+      content: "⌁";
+      color: var(--cyan);
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .comment-value {
+      max-width: 76ch;
+      margin: 11px 0 0;
+      color: #bdcad7;
+      font-size: 14px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+    }
+
     .controls {
       display: flex;
       align-items: center;
@@ -385,6 +480,11 @@
 </head>
 <body>
   <main class="shell">
+    <aside class="notice-card" id="noticeCard" role="alert" aria-live="assertive" hidden>
+      <p class="notice-label">QST · Station Notice</p>
+      <p class="notice-value" id="noticeText"></p>
+    </aside>
+
     <header class="site-header">
       <div class="brand">
         <div class="signal-mark" aria-hidden="true"><span></span></div>
@@ -435,6 +535,11 @@
       <button class="refresh" id="refreshButton" type="button">Refresh now</button>
     </div>
 
+    <aside class="comment-card" id="commentCard" aria-labelledby="commentLabel" hidden>
+      <p class="comment-label" id="commentLabel">Comment</p>
+      <p class="comment-value" id="commentText"></p>
+    </aside>
+
     <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
@@ -446,11 +551,14 @@
 
     const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
     const SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
+    const QST_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&range=B7:B8";
     const REFRESH_INTERVAL_MS = 60 * 1000;
     const REQUEST_TIMEOUT_MS = 12 * 1000;
     const MAX_RETRIES = 2;
     const CACHE_KEY = "sp7kjr-radio-status-v2";
-    const FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+    const STATUS_FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+    const OPTIONAL_FIELD_NAMES = ["comment", "notice"];
+    const FIELD_NAMES = STATUS_FIELD_NAMES.concat(OPTIONAL_FIELD_NAMES);
 
     const fieldAliases = {
       status: ["status", "stan"],
@@ -462,9 +570,13 @@
 
     const ui = {
       clock: document.getElementById("clock"),
+      comment: document.getElementById("commentText"),
+      commentCard: document.getElementById("commentCard"),
       connection: document.getElementById("connection"),
       frequency: document.getElementById("frequency"),
       network: document.getElementById("network"),
+      notice: document.getElementById("noticeText"),
+      noticeCard: document.getElementById("noticeCard"),
       panel: document.getElementById("statusPanel"),
       qth: document.getElementById("qth"),
       refreshButton: document.getElementById("refreshButton"),
@@ -483,10 +595,10 @@
         .replace(/\s+/g, " ");
     }
 
-    function safeText(value, fallback) {
+    function safeText(value, fallback, maxLength = 160) {
       const text = String(value ?? "").replace(/\s+/g, " ").trim();
       if (!text) return fallback;
-      return text.length > 160 ? text.slice(0, 157) + "…" : text;
+      return text.length > maxLength ? text.slice(0, maxLength - 1) + "…" : text;
     }
 
     function getCellValue(cell) {
@@ -494,7 +606,7 @@
       return cell.f ?? cell.v ?? null;
     }
 
-    function parseSheetResponse(payload) {
+    function parseVisualizationResponse(payload) {
       const prefix = "google.visualization.Query.setResponse(";
       const start = payload.indexOf(prefix);
       if (start < 0) throw new Error("Unable to identify the sheet response format.");
@@ -511,6 +623,11 @@
         throw new Error("The sheet response does not contain a data table.");
       }
 
+      return data;
+    }
+
+    function parseSheetResponse(payload) {
+      const data = parseVisualizationResponse(payload);
       const values = Object.create(null);
 
       for (const row of data.table.rows) {
@@ -529,6 +646,15 @@
       }
 
       return result;
+    }
+
+    function parseQstResponse(payload) {
+      const data = parseVisualizationResponse(payload);
+      const rows = data.table.rows;
+      return {
+        comment: safeText(getCellValue(rows[0]?.c?.[0]), "", 900),
+        notice: safeText(getCellValue(rows[1]?.c?.[0]), "", 320)
+      };
     }
 
     async function fetchWithTimeout(url) {
@@ -571,8 +697,12 @@
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
         try {
           const separator = SHEET_URL.includes("?") ? "&" : "?";
-          const payload = await fetchWithTimeout(SHEET_URL + separator + "cache=" + Date.now());
-          return parseSheetResponse(payload);
+          const timestamp = Date.now();
+          const [statusPayload, qstPayload] = await Promise.all([
+            fetchWithTimeout(SHEET_URL + separator + "cache=" + timestamp),
+            fetchWithTimeout(QST_URL + separator + "cache=" + timestamp)
+          ]);
+          return Object.assign(parseSheetResponse(statusPayload), parseQstResponse(qstPayload));
         } catch (error) {
           lastError = error;
           if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
@@ -595,9 +725,16 @@
     }
 
     function applyValues(values) {
-      for (const field of FIELD_NAMES) {
+      for (const field of STATUS_FIELD_NAMES) {
         ui[field].textContent = safeText(values[field], "—");
       }
+
+      const notice = safeText(values.notice, "", 320);
+      const comment = safeText(values.comment, "", 900);
+      ui.notice.textContent = notice;
+      ui.noticeCard.hidden = !notice;
+      ui.comment.textContent = comment;
+      ui.commentCard.hidden = !comment;
 
       const statusType = getStatusType(values.status);
       ui.panel.classList.toggle("is-live", statusType === "live");
@@ -623,7 +760,8 @@
 
         const values = Object.create(null);
         for (const field of FIELD_NAMES) {
-          values[field] = safeText(cached.values[field], "—");
+          const isOptional = OPTIONAL_FIELD_NAMES.includes(field);
+          values[field] = safeText(cached.values[field], isOptional ? "" : "—", isOptional ? 900 : 160);
         }
         return { savedAt: cached.savedAt, values: values };
       } catch (error) {
@@ -655,7 +793,9 @@
         updated: "—",
         frequency: "—",
         network: "—",
-        qth: "—"
+        qth: "—",
+        comment: "",
+        notice: ""
       });
       setConnection("Unable to load data. Please try again later.", "error");
     }
