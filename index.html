@@ -414,7 +414,14 @@
       line-height: 1.5;
     }
 
-    .refresh {
+    .action-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .refresh,
+    .qrz-link {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -431,10 +438,23 @@
       transition: transform .18s ease, background .18s ease, border-color .18s ease;
     }
 
-    .refresh:hover {
+    .refresh:hover,
+    .qrz-link:hover {
       border-color: rgba(84, 215, 255, .65);
       background: rgba(84, 215, 255, .16);
       transform: translateY(-1px);
+    }
+
+    .qrz-link {
+      border-color: rgba(98, 230, 167, .3);
+      color: var(--green);
+      background: var(--green-soft);
+      text-decoration: none;
+    }
+
+    .qrz-link:hover {
+      border-color: rgba(98, 230, 167, .65);
+      background: rgba(98, 230, 167, .2);
     }
 
     .refresh:disabled {
@@ -443,9 +463,70 @@
       transform: none;
     }
 
-    .refresh:focus-visible {
+    .refresh:focus-visible,
+    .qrz-link:focus-visible,
+    .contact-link:focus-visible {
       outline: 3px solid rgba(84, 215, 255, .46);
       outline-offset: 3px;
+    }
+
+    .contact-card {
+      margin-top: 20px;
+      padding: 21px 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(12, 22, 35, .78);
+    }
+
+    .contact-heading {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .contact-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .contact-link {
+      display: block;
+      min-width: 0;
+      padding: 13px 14px;
+      border: 1px solid rgba(154, 191, 225, .12);
+      border-radius: 12px;
+      color: var(--text);
+      background: rgba(255, 255, 255, .025);
+      text-decoration: none;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .contact-link:hover {
+      border-color: rgba(84, 215, 255, .38);
+      background: rgba(84, 215, 255, .08);
+      transform: translateY(-1px);
+    }
+
+    .contact-type {
+      display: block;
+      margin-bottom: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .contact-value {
+      display: block;
+      font-size: 14px;
+      font-weight: 650;
+      overflow-wrap: anywhere;
     }
 
     .site-footer {
@@ -469,6 +550,9 @@
       .data-card--wide { grid-column: auto; }
       .data-card { min-height: 126px; }
       .controls { align-items: flex-start; flex-direction: column-reverse; }
+      .action-group { width: 100%; }
+      .action-group > * { flex: 1; }
+      .contact-grid { grid-template-columns: 1fr; }
       .site-footer { display: block; }
       .site-footer p + p { margin-top: 5px; }
     }
@@ -532,13 +616,34 @@
 
     <div class="controls">
       <p class="source-note">Data is read from a public Google Sheet and refreshed automatically every minute.</p>
-      <button class="refresh" id="refreshButton" type="button">Refresh now</button>
+      <div class="action-group">
+        <a class="qrz-link" href="https://www.qrz.com/db/SP7KJR" target="_blank" rel="noopener noreferrer">Station Info – QRZ</a>
+        <button class="refresh" id="refreshButton" type="button">Refresh now</button>
+      </div>
     </div>
 
     <aside class="comment-card" id="commentCard" aria-labelledby="commentLabel" hidden>
       <p class="comment-label" id="commentLabel">Comment</p>
       <p class="comment-value" id="commentText"></p>
     </aside>
+
+    <section class="contact-card" aria-labelledby="contactHeading">
+      <h2 class="contact-heading" id="contactHeading">Contact</h2>
+      <div class="contact-grid">
+        <a class="contact-link" href="mailto:sp7kjr@icloud.com">
+          <span class="contact-type">📧 E-mail</span>
+          <span class="contact-value">sp7kjr@icloud.com</span>
+        </a>
+        <a class="contact-link" href="tel:+48422077540">
+          <span class="contact-type">☎️ Landline</span>
+          <span class="contact-value">+48 42 207 75 40</span>
+        </a>
+        <a class="contact-link" href="tel:+48729922686">
+          <span class="contact-type">📱 Mobile</span>
+          <span class="contact-value">+48 729 922 686</span>
+        </a>
+      </div>
+    </section>
 
     <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
