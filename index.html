@@ -487,6 +487,14 @@
       text-transform: uppercase;
     }
 
+    .contact-intro {
+      max-width: 62ch;
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
     .contact-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -529,6 +537,29 @@
       overflow-wrap: anywhere;
     }
 
+    .abbreviations {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .abbreviation {
+      margin: 0;
+      padding: 13px 15px;
+      border: 1px solid rgba(154, 191, 225, .1);
+      border-radius: 12px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, .018);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .abbreviation strong {
+      color: #c6d5e2;
+      font-weight: 750;
+    }
+
     .site-footer {
       display: flex;
       justify-content: space-between;
@@ -553,6 +584,7 @@
       .action-group { width: 100%; }
       .action-group > * { flex: 1; }
       .contact-grid { grid-template-columns: 1fr; }
+      .abbreviations { grid-template-columns: 1fr; }
       .site-footer { display: block; }
       .site-footer p + p { margin-top: 5px; }
     }
@@ -629,6 +661,7 @@
 
     <section class="contact-card" aria-labelledby="contactHeading">
       <h2 class="contact-heading" id="contactHeading">Contact</h2>
+      <p class="contact-intro">Call or message me for a QSO or any other radio-related matter.</p>
       <div class="contact-grid">
         <a class="contact-link" href="mailto:sp7kjr@icloud.com">
           <span class="contact-type">📧 E-mail</span>
@@ -644,6 +677,11 @@
         </a>
       </div>
     </section>
+
+    <aside class="abbreviations" aria-label="Abbreviations">
+      <p class="abbreviation"><strong>Abbreviations:</strong> QRL, DND – Do Not Disturb</p>
+      <p class="abbreviation"><strong>QSX, RX/TX</strong> – Receiving, Transmit</p>
+    </aside>
 
     <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
