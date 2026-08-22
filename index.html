@@ -638,7 +638,7 @@
       }
 
       const result = Object.create(null);
-      for (const field of FIELD_NAMES) {
+      for (const field of STATUS_FIELD_NAMES) {
         const sourceKey = fieldAliases[field].find(function (alias) {
           return Object.prototype.hasOwnProperty.call(values, alias);
         });
