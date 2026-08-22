@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
-  <title>SP7KJR · Status radiowy</title>
+  <title>SP7KJR · Radio Status</title>
   <style>
     :root {
       --bg: #070b12;
@@ -389,12 +389,12 @@
       <div class="brand">
         <div class="signal-mark" aria-hidden="true"><span></span></div>
         <div class="brand-copy">
-          <p class="eyebrow">Stacja amatorska</p>
+          <p class="eyebrow">Amateur Radio Station</p>
           <h1 class="callsign">SP7KJR</h1>
         </div>
       </div>
-      <div class="clock" aria-label="Czas lokalny">
-        CZAS LOKALNY
+      <div class="clock" aria-label="Local time">
+        LOCAL TIME
         <strong id="clock">--:--:--</strong>
       </div>
     </header>
@@ -402,25 +402,25 @@
     <section class="status-panel" id="statusPanel" aria-labelledby="statusHeading">
       <div class="status-topline">
         <span class="indicator" aria-hidden="true"></span>
-        <p class="section-label">Status stacji</p>
+        <p class="section-label">Station Status</p>
       </div>
-      <h2 class="status-value" id="statusHeading" aria-live="polite">Pobieranie danych…</h2>
-      <p class="connection" id="connection" role="status" aria-live="polite">Łączenie z arkuszem statusu</p>
+      <h2 class="status-value" id="statusHeading" aria-live="polite">Loading data…</h2>
+      <p class="connection" id="connection" role="status" aria-live="polite">Connecting to the status sheet</p>
     </section>
 
-    <section class="dashboard" aria-label="Szczegóły pracy stacji">
+    <section class="dashboard" aria-label="Station details">
       <article class="data-card">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Ostatnia aktualizacja</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Last updated</p>
         <p class="card-value" id="updated">—</p>
       </article>
 
       <article class="data-card">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Sieć</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Network</p>
         <p class="card-value" id="network">—</p>
       </article>
 
       <article class="data-card data-card--wide">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Częstotliwość / przemiennik</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Frequency / repeater</p>
         <p class="card-value" id="frequency">—</p>
       </article>
 
@@ -431,13 +431,13 @@
     </section>
 
     <div class="controls">
-      <p class="source-note">Dane są odczytywane z publicznego arkusza Google. Strona odświeża je automatycznie co minutę.</p>
-      <button class="refresh" id="refreshButton" type="button">Odśwież teraz</button>
+      <p class="source-note">Data is read from a public Google Sheet and refreshed automatically every minute.</p>
+      <button class="refresh" id="refreshButton" type="button">Refresh now</button>
     </div>
 
     <footer class="site-footer">
-      <p>SP7KJR · Krótkofalarstwo</p>
-      <p>© <span id="year"></span> · Panel statusu</p>
+      <p>SP7KJR · Amateur Radio</p>
+      <p>© <span id="year"></span> · Status dashboard</p>
     </footer>
   </main>
 
@@ -477,7 +477,7 @@
     function normaliseKey(value) {
       return String(value ?? "")
         .trim()
-        .toLocaleLowerCase("pl-PL")
+        .toLocaleLowerCase("en-US")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/\s+/g, " ");
@@ -497,18 +497,18 @@
     function parseSheetResponse(payload) {
       const prefix = "google.visualization.Query.setResponse(";
       const start = payload.indexOf(prefix);
-      if (start < 0) throw new Error("Nie rozpoznano formatu odpowiedzi arkusza.");
+      if (start < 0) throw new Error("Unable to identify the sheet response format.");
 
       const json = payload
         .slice(start + prefix.length)
         .replace(/\)\s*;?\s*$/, "")
         .trim();
 
-      if (!json) throw new Error("Arkusz nie zwrócił danych.");
+      if (!json) throw new Error("The sheet returned no data.");
       const data = JSON.parse(json);
 
       if (!data.table || !Array.isArray(data.table.rows)) {
-        throw new Error("Odpowiedź arkusza nie zawiera tabeli danych.");
+        throw new Error("The sheet response does not contain a data table.");
       }
 
       const values = Object.create(null);
@@ -545,13 +545,13 @@
         });
 
         if (!response.ok) {
-          throw new Error("Serwer zwrócił kod HTTP " + response.status + ".");
+          throw new Error("Server returned HTTP status " + response.status + ".");
         }
 
         return await response.text();
       } catch (error) {
         if (error.name === "AbortError") {
-          throw new Error("Przekroczono czas oczekiwania na odpowiedź.");
+          throw new Error("Request timed out.");
         }
         throw error;
       } finally {
@@ -579,7 +579,7 @@
         }
       }
 
-      throw lastError || new Error("Nie udało się pobrać danych.");
+      throw lastError || new Error("Unable to load status data.");
     }
 
     function setConnection(message, type) {
@@ -589,8 +589,8 @@
 
     function getStatusType(status) {
       const text = normaliseKey(status);
-      if (/(awaria|offline|niedostep|nieaktywn|blad|error|problem)/.test(text)) return "alert";
-      if (/(online|aktywn|dziala|dostepn|gotow|ok)/.test(text)) return "live";
+      if (/(fault|offline|unavailable|inactive|error|issue|awaria|niedostep|nieaktywn|blad|problem)/.test(text)) return "alert";
+      if (/(online|active|operational|available|ready|running|ok|aktywn|dziala|dostepn|gotow)/.test(text)) return "live";
       return "";
     }
 
@@ -612,7 +612,7 @@
           version: 1
         }));
       } catch (error) {
-        console.warn("Nie udało się zapisać lokalnej kopii statusu.", error);
+        console.warn("Unable to save the local status cache.", error);
       }
     }
 
@@ -632,7 +632,7 @@
     }
 
     function formatLocalTime(timestamp) {
-      return new Intl.DateTimeFormat("pl-PL", {
+      return new Intl.DateTimeFormat("en-GB", {
         day: "2-digit",
         month: "2-digit",
         year: "numeric",
@@ -642,7 +642,7 @@
     }
 
     function updateClock() {
-      ui.clock.textContent = new Intl.DateTimeFormat("pl-PL", {
+      ui.clock.textContent = new Intl.DateTimeFormat("en-GB", {
         hour: "2-digit",
         minute: "2-digit",
         second: "2-digit"
@@ -651,13 +651,13 @@
 
     function renderUnavailable() {
       applyValues({
-        status: "Brak połączenia z danymi",
+        status: "No connection to data",
         updated: "—",
         frequency: "—",
         network: "—",
         qth: "—"
       });
-      setConnection("Nie udało się pobrać danych. Spróbuj ponownie później.", "error");
+      setConnection("Unable to load data. Please try again later.", "error");
     }
 
     async function refreshStatus() {
@@ -665,28 +665,28 @@
 
       isLoading = true;
       ui.refreshButton.disabled = true;
-      ui.refreshButton.textContent = "Odświeżanie…";
-      setConnection("Aktualizacja danych z arkusza…", "warning");
+      ui.refreshButton.textContent = "Refreshing…";
+      setConnection("Refreshing data from the sheet…", "warning");
 
       try {
         const values = await loadFromSheet();
         applyValues(values);
         saveCache(values);
-        setConnection("Połączono z arkuszem · synchronizacja " + formatLocalTime(Date.now()), "success");
+        setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
       } catch (error) {
         console.error("SP7KJR status error:", error);
         const cached = readCache();
 
         if (cached) {
           applyValues(cached.values);
-          setConnection("Wyświetlane są ostatnie zapisane dane · " + formatLocalTime(cached.savedAt), "warning");
+          setConnection("Displaying most recently saved data · " + formatLocalTime(cached.savedAt), "warning");
         } else {
           renderUnavailable();
         }
       } finally {
         isLoading = false;
         ui.refreshButton.disabled = false;
-        ui.refreshButton.textContent = "Odśwież teraz";
+        ui.refreshButton.textContent = "Refresh now";
       }
     }
 
@@ -696,7 +696,7 @@
     const cached = readCache();
     if (cached) {
       applyValues(cached.values);
-      setConnection("Wyświetlane są zapisane dane · trwa aktualizacja…", "warning");
+      setConnection("Showing saved data · refreshing…", "warning");
     }
 
     updateClock();
