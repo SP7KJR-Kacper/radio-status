@@ -1,455 +1,708 @@
-```html
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <title>SP7KJR · Status radiowy</title>
+  <style>
+    :root {
+      --bg: #070b12;
+      --panel: rgba(14, 23, 36, .86);
+      --panel-strong: #101b2c;
+      --line: rgba(154, 191, 225, .15);
+      --text: #f2f7fc;
+      --muted: #94a5b8;
+      --dim: #627387;
+      --cyan: #54d7ff;
+      --cyan-soft: rgba(84, 215, 255, .14);
+      --green: #62e6a7;
+      --green-soft: rgba(98, 230, 167, .14);
+      --amber: #ffc968;
+      --red: #ff7986;
+      --red-soft: rgba(255, 121, 134, .14);
+      --radius: 20px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
 
-    <title>SP7KJR - Status radiowy</title>
+    * { box-sizing: border-box; }
 
-    <style>
+    html { background: var(--bg); }
 
-        * {
-            box-sizing: border-box;
-        }
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 0%, rgba(55, 169, 222, .20), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(52, 218, 165, .13), transparent 26rem),
+        linear-gradient(135deg, #07111d 0%, #070b12 48%, #0a121e 100%);
+    }
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #111;
-            color: #fff;
-            display: flex;
-            justify-content: center;
-        }
+    body::before {
+      position: fixed;
+      z-index: -1;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      opacity: .34;
+      background-image:
+        linear-gradient(rgba(120, 166, 202, .06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(120, 166, 202, .06) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 82%);
+    }
 
-        .container {
-            width: 100%;
-            max-width: 600px;
-            padding: 50px 20px;
-            text-align: center;
-        }
+    button { font: inherit; }
 
-        h1 {
-            margin: 0;
-            font-size: 42px;
-            font-weight: 700;
-        }
+    .shell {
+      width: min(100% - 32px, 920px);
+      margin: 0 auto;
+      padding: clamp(32px, 7vw, 72px) 0 32px;
+    }
 
-        .subtitle {
-            margin-top: 8px;
-            margin-bottom: 40px;
-            color: #888;
-            font-size: 17px;
-            letter-spacing: 1px;
-        }
+    .site-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding-bottom: clamp(32px, 6vw, 56px);
+    }
 
-        .status {
-            margin-bottom: 35px;
-            font-size: 34px;
-            font-weight: 700;
-        }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      min-width: 0;
+    }
 
-        .card {
-            background: #1c1c1c;
-            border-radius: 16px;
-            padding: 22px;
-            margin-bottom: 15px;
-        }
+    .signal-mark {
+      position: relative;
+      display: grid;
+      width: 52px;
+      height: 52px;
+      flex: 0 0 52px;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid rgba(84, 215, 255, .38);
+      border-radius: 15px;
+      color: var(--cyan);
+      background: linear-gradient(145deg, rgba(84, 215, 255, .17), rgba(84, 215, 255, .03));
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 12px 28px rgba(0, 0, 0, .2);
+    }
 
-        .label {
-            margin-bottom: 8px;
-            color: #888;
-            font-size: 14px;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
+    .signal-mark::before,
+    .signal-mark::after {
+      position: absolute;
+      content: "";
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      opacity: .58;
+    }
 
-        .value {
-            font-size: 24px;
-            font-weight: 700;
-            word-break: break-word;
-        }
+    .signal-mark::before { width: 23px; height: 23px; }
+    .signal-mark::after { width: 39px; height: 39px; opacity: .28; }
 
-        .frequency {
-            font-size: 32px;
-        }
+    .signal-mark span {
+      z-index: 1;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: currentColor;
+      box-shadow: 0 0 16px currentColor;
+    }
 
-        .footer {
-            margin-top: 35px;
-            color: #666;
-            font-size: 14px;
-        }
+    .brand-copy { min-width: 0; }
 
-    </style>
+    .eyebrow,
+    .section-label,
+    .card-label {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .14em;
+      line-height: 1.25;
+      text-transform: uppercase;
+    }
 
+    .callsign {
+      margin: 3px 0 0;
+      color: var(--text);
+      font-size: clamp(22px, 4vw, 30px);
+      font-weight: 780;
+      letter-spacing: .04em;
+      line-height: 1.05;
+    }
+
+    .clock {
+      min-width: max-content;
+      color: var(--muted);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+
+    .clock strong {
+      display: block;
+      margin-top: 3px;
+      color: var(--text);
+      font-size: 15px;
+      font-weight: 650;
+    }
+
+    .status-panel {
+      position: relative;
+      overflow: hidden;
+      padding: clamp(24px, 5vw, 40px);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: linear-gradient(135deg, rgba(18, 34, 51, .96), rgba(9, 17, 28, .95));
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05);
+    }
+
+    .status-panel::after {
+      position: absolute;
+      top: -70px;
+      right: -55px;
+      width: 240px;
+      height: 240px;
+      content: "";
+      border: 1px solid rgba(84, 215, 255, .16);
+      border-radius: 50%;
+      box-shadow: 0 0 0 24px rgba(84, 215, 255, .035), 0 0 0 48px rgba(84, 215, 255, .02);
+      pointer-events: none;
+    }
+
+    .status-panel.is-live {
+      border-color: rgba(98, 230, 167, .3);
+    }
+
+    .status-panel.is-alert {
+      border-color: rgba(255, 121, 134, .32);
+    }
+
+    .status-topline {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .indicator {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--amber);
+      box-shadow: 0 0 0 5px rgba(255, 201, 104, .11), 0 0 16px rgba(255, 201, 104, .6);
+    }
+
+    .is-live .indicator {
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(98, 230, 167, .11), 0 0 16px rgba(98, 230, 167, .6);
+    }
+
+    .is-alert .indicator {
+      background: var(--red);
+      box-shadow: 0 0 0 5px rgba(255, 121, 134, .11), 0 0 16px rgba(255, 121, 134, .6);
+    }
+
+    .status-value {
+      position: relative;
+      z-index: 1;
+      max-width: 15ch;
+      margin: 13px 0 18px;
+      font-size: clamp(30px, 7vw, 52px);
+      font-weight: 760;
+      letter-spacing: -.04em;
+      line-height: 1.04;
+      overflow-wrap: anywhere;
+    }
+
+    .connection {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 22px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .connection::before {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 7px;
+      content: "";
+      border-radius: 50%;
+      background: currentColor;
+      opacity: .72;
+    }
+
+    .connection.is-success { color: var(--green); }
+    .connection.is-warning { color: var(--amber); }
+    .connection.is-error { color: var(--red); }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .data-card {
+      min-height: 142px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+    }
+
+    .data-card--wide { grid-column: span 2; }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .card-icon {
+      display: inline-grid;
+      width: 25px;
+      height: 25px;
+      flex: 0 0 25px;
+      place-items: center;
+      border: 1px solid rgba(84, 215, 255, .18);
+      border-radius: 8px;
+      color: var(--cyan);
+      background: var(--cyan-soft);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .card-value {
+      margin: 18px 0 0;
+      color: var(--text);
+      font-size: clamp(20px, 4vw, 29px);
+      font-weight: 690;
+      letter-spacing: -.025em;
+      line-height: 1.15;
+      overflow-wrap: anywhere;
+    }
+
+    .data-card--wide .card-value {
+      font-size: clamp(24px, 5vw, 38px);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 20px;
+      padding: 5px 1px;
+    }
+
+    .source-note {
+      margin: 0;
+      color: var(--dim);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .refresh {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0 15px;
+      border: 1px solid rgba(84, 215, 255, .33);
+      border-radius: 11px;
+      color: var(--text);
+      cursor: pointer;
+      background: rgba(84, 215, 255, .09);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
+      font-size: 13px;
+      font-weight: 700;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .refresh:hover {
+      border-color: rgba(84, 215, 255, .65);
+      background: rgba(84, 215, 255, .16);
+      transform: translateY(-1px);
+    }
+
+    .refresh:disabled {
+      cursor: wait;
+      opacity: .58;
+      transform: none;
+    }
+
+    .refresh:focus-visible {
+      outline: 3px solid rgba(84, 215, 255, .46);
+      outline-offset: 3px;
+    }
+
+    .site-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 44px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(154, 191, 225, .1);
+      color: var(--dim);
+      font-size: 12px;
+    }
+
+    .site-footer p { margin: 0; }
+
+    @media (max-width: 560px) {
+      .shell { width: min(100% - 24px, 920px); padding-top: 24px; }
+      .site-header { align-items: flex-start; }
+      .clock { display: none; }
+      .dashboard { grid-template-columns: 1fr; }
+      .data-card--wide { grid-column: auto; }
+      .data-card { min-height: 126px; }
+      .controls { align-items: flex-start; flex-direction: column-reverse; }
+      .site-footer { display: block; }
+      .site-footer p + p { margin-top: 5px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+  </style>
 </head>
-
-
 <body>
-
-    <main class="container">
-
-        <h1>
-            📡 SP7KJR
-        </h1>
-
-        <div class="subtitle">
-            STATUS RADIOWY
+  <main class="shell">
+    <header class="site-header">
+      <div class="brand">
+        <div class="signal-mark" aria-hidden="true"><span></span></div>
+        <div class="brand-copy">
+          <p class="eyebrow">Stacja amatorska</p>
+          <h1 class="callsign">SP7KJR</h1>
         </div>
-
-
-        <!-- STATUS -->
-
-        <div class="status" id="status">
-            Ładowanie...
-        </div>
-
-
-        <!-- OSTATNIA AKTUALIZACJA -->
-
-        <div class="card">
-
-            <div class="label">
-                OSTATNIA AKTUALIZACJA
-            </div>
-
-            <div class="value" id="updated">
-                ---
-            </div>
-
-        </div>
-
-
-        <!-- CZĘSTOTLIWOŚĆ -->
-
-        <div class="card">
-
-            <div class="label">
-                CZĘSTOTLIWOŚĆ / ZNAK PRZEMIENNIKA
-            </div>
-
-            <div class="value frequency" id="frequency">
-                ---
-            </div>
-
-        </div>
-
-
-        <!-- SIEĆ -->
-
-        <div class="card">
-
-            <div class="label">
-                SIEĆ
-            </div>
-
-            <div class="value" id="network">
-                ---
-            </div>
-
-        </div>
-
-
-        <!-- QTH -->
-
-        <div class="card">
-
-            <div class="label">
-                QTH
-            </div>
-
-            <div class="value" id="qth">
-                ---
-            </div>
-
-        </div>
-
-
-        <div class="footer">
-            SP7KJR • Krótkofalarstwo
-        </div>
-
-    </main>
-
-
-
-    <script>
-
-        /*
-         * ==========================================
-         * KONFIGURACJA
-         * ==========================================
-         */
-
-        const SHEET_ID =
-            "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
-
-
-        /*
-         * ==========================================
-         * ADRES GOOGLE SHEETS
-         * ==========================================
-         */
-
-        const SHEET_URL =
-            "https://docs.google.com/spreadsheets/d/" +
-            SHEET_ID +
-            "/gviz/tq?tqx=out:json&headers=1&range=A:B";
-
-
-        /*
-         * ==========================================
-         * POBIERANIE DANYCH
-         * ==========================================
-         */
-
-        async function loadRadioStatus() {
-
-            try {
-
-                /*
-                 * Zapobiega korzystaniu ze starej
-                 * wersji danych zapisanej w cache.
-                 */
-
-                const url =
-                    SHEET_URL +
-                    "&cache=" +
-                    Date.now();
-
-
-                const response =
-                    await fetch(url);
-
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        "Błąd HTTP: " +
-                        response.status
-                    );
-
-                }
-
-
-                const text =
-                    await response.text();
-
-
-                /*
-                 * Google Sheets zwraca odpowiedź
-                 * w formacie:
-                 *
-                 * google.visualization.Query.setResponse(...)
-                 */
-
-                const match =
-                    text.match(
-                        /google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/
-                    );
-
-
-                if (!match) {
-
-                    throw new Error(
-                        "Nieprawidłowa odpowiedź Google Sheets."
-                    );
-
-                }
-
-
-                const data =
-                    JSON.parse(match[1]);
-
-
-                if (
-                    !data.table ||
-                    !Array.isArray(data.table.rows)
-                ) {
-
-                    throw new Error(
-                        "Brak danych tabeli."
-                    );
-
-                }
-
-
-                /*
-                 * ======================================
-                 * ODCZYT DANYCH
-                 * ======================================
-                 */
-
-                const values = {};
-
-
-                for (
-                    const row of data.table.rows
-                ) {
-
-                    if (
-                        !row.c ||
-                        !row.c[0] ||
-                        !row.c[1]
-                    ) {
-
-                        continue;
-
-                    }
-
-
-                    const key =
-                        row.c[0].v;
-
-
-                    const value =
-                        row.c[1].f ??
-                        row.c[1].v;
-
-
-                    if (
-                        key !== null &&
-                        key !== undefined
-                    ) {
-
-                        values[
-                            String(key)
-                                .trim()
-                                .toLowerCase()
-                        ] = value;
-
-                    }
-
-                }
-
-
-                /*
-                 * ======================================
-                 * WYŚWIETLANIE DANYCH
-                 * ======================================
-                 *
-                 * Wszystkie pola są zawsze widoczne.
-                 * Ich zawartość zależy wyłącznie od
-                 * danych pobranych z Google Sheets.
-                 */
-
-                document
-                    .getElementById("status")
-                    .textContent =
-                    values.status || "---";
-
-
-                document
-                    .getElementById("updated")
-                    .textContent =
-                    values.updated || "---";
-
-
-                document
-                    .getElementById("frequency")
-                    .textContent =
-                    values.frequency || "---";
-
-
-                document
-                    .getElementById("network")
-                    .textContent =
-                    values.network || "---";
-
-
-                document
-                    .getElementById("qth")
-                    .textContent =
-                    values.qth || "---";
-
-
-                /*
-                 * Informacja dla programisty
-                 * w konsoli przeglądarki.
-                 */
-
-                console.log(
-                    "SP7KJR STATUS OK:",
-                    values
-                );
-
-            }
-
-
-            catch (error) {
-
-                console.error(
-                    "SP7KJR STATUS ERROR:",
-                    error
-                );
-
-
-                /*
-                 * Jeśli Google Sheets nie odpowiada,
-                 * pokazujemy błąd zamiast pustej strony.
-                 */
-
-                document
-                    .getElementById("status")
-                    .textContent =
-                    "Nie można pobrać statusu";
-
-
-                document
-                    .getElementById("updated")
-                    .textContent =
-                    "---";
-
-
-                document
-                    .getElementById("frequency")
-                    .textContent =
-                    "---";
-
-
-                document
-                    .getElementById("network")
-                    .textContent =
-                    "---";
-
-
-                document
-                    .getElementById("qth")
-                    .textContent =
-                    "---";
-
-            }
-
+      </div>
+      <div class="clock" aria-label="Czas lokalny">
+        CZAS LOKALNY
+        <strong id="clock">--:--:--</strong>
+      </div>
+    </header>
+
+    <section class="status-panel" id="statusPanel" aria-labelledby="statusHeading">
+      <div class="status-topline">
+        <span class="indicator" aria-hidden="true"></span>
+        <p class="section-label">Status stacji</p>
+      </div>
+      <h2 class="status-value" id="statusHeading" aria-live="polite">Pobieranie danych…</h2>
+      <p class="connection" id="connection" role="status" aria-live="polite">Łączenie z arkuszem statusu</p>
+    </section>
+
+    <section class="dashboard" aria-label="Szczegóły pracy stacji">
+      <article class="data-card">
+        <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Ostatnia aktualizacja</p>
+        <p class="card-value" id="updated">—</p>
+      </article>
+
+      <article class="data-card">
+        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Sieć</p>
+        <p class="card-value" id="network">—</p>
+      </article>
+
+      <article class="data-card data-card--wide">
+        <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Częstotliwość / przemiennik</p>
+        <p class="card-value" id="frequency">—</p>
+      </article>
+
+      <article class="data-card data-card--wide">
+        <p class="card-label"><span class="card-icon" aria-hidden="true">⌖</span>QTH</p>
+        <p class="card-value" id="qth">—</p>
+      </article>
+    </section>
+
+    <div class="controls">
+      <p class="source-note">Dane są odczytywane z publicznego arkusza Google. Strona odświeża je automatycznie co minutę.</p>
+      <button class="refresh" id="refreshButton" type="button">Odśwież teraz</button>
+    </div>
+
+    <footer class="site-footer">
+      <p>SP7KJR · Krótkofalarstwo</p>
+      <p>© <span id="year"></span> · Panel statusu</p>
+    </footer>
+  </main>
+
+  <script>
+    "use strict";
+
+    const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
+    const REFRESH_INTERVAL_MS = 60 * 1000;
+    const REQUEST_TIMEOUT_MS = 12 * 1000;
+    const MAX_RETRIES = 2;
+    const CACHE_KEY = "sp7kjr-radio-status-v2";
+    const FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+
+    const fieldAliases = {
+      status: ["status", "stan"],
+      updated: ["updated", "ostatnia aktualizacja", "aktualizacja"],
+      frequency: ["frequency", "czestotliwosc", "czestotliwosc / znak przemiennika", "przemiennik"],
+      network: ["network", "siec"],
+      qth: ["qth", "lokalizacja"]
+    };
+
+    const ui = {
+      clock: document.getElementById("clock"),
+      connection: document.getElementById("connection"),
+      frequency: document.getElementById("frequency"),
+      network: document.getElementById("network"),
+      panel: document.getElementById("statusPanel"),
+      qth: document.getElementById("qth"),
+      refreshButton: document.getElementById("refreshButton"),
+      status: document.getElementById("statusHeading"),
+      updated: document.getElementById("updated")
+    };
+
+    let isLoading = false;
+
+    function normaliseKey(value) {
+      return String(value ?? "")
+        .trim()
+        .toLocaleLowerCase("pl-PL")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function safeText(value, fallback) {
+      const text = String(value ?? "").replace(/\s+/g, " ").trim();
+      if (!text) return fallback;
+      return text.length > 160 ? text.slice(0, 157) + "…" : text;
+    }
+
+    function getCellValue(cell) {
+      if (!cell || typeof cell !== "object") return null;
+      return cell.f ?? cell.v ?? null;
+    }
+
+    function parseSheetResponse(payload) {
+      const prefix = "google.visualization.Query.setResponse(";
+      const start = payload.indexOf(prefix);
+      if (start < 0) throw new Error("Nie rozpoznano formatu odpowiedzi arkusza.");
+
+      const json = payload
+        .slice(start + prefix.length)
+        .replace(/\)\s*;?\s*$/, "")
+        .trim();
+
+      if (!json) throw new Error("Arkusz nie zwrócił danych.");
+      const data = JSON.parse(json);
+
+      if (!data.table || !Array.isArray(data.table.rows)) {
+        throw new Error("Odpowiedź arkusza nie zawiera tabeli danych.");
+      }
+
+      const values = Object.create(null);
+
+      for (const row of data.table.rows) {
+        const key = getCellValue(row?.c?.[0]);
+        const value = getCellValue(row?.c?.[1]);
+        if (key === null || key === undefined || value === null || value === undefined) continue;
+        values[normaliseKey(key)] = value;
+      }
+
+      const result = Object.create(null);
+      for (const field of FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "—");
+      }
+
+      return result;
+    }
+
+    async function fetchWithTimeout(url) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(function () {
+        controller.abort();
+      }, REQUEST_TIMEOUT_MS);
+
+      try {
+        const response = await fetch(url, {
+          cache: "no-store",
+          credentials: "omit",
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          throw new Error("Serwer zwrócił kod HTTP " + response.status + ".");
         }
 
+        return await response.text();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Przekroczono czas oczekiwania na odpowiedź.");
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
+      }
+    }
 
-        /*
-         * ==========================================
-         * PIERWSZE URUCHOMIENIE
-         * ==========================================
-         */
+    function delay(milliseconds) {
+      return new Promise(function (resolve) {
+        window.setTimeout(resolve, milliseconds);
+      });
+    }
 
-        loadRadioStatus();
+    async function loadFromSheet() {
+      let lastError;
 
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+        try {
+          const separator = SHEET_URL.includes("?") ? "&" : "?";
+          const payload = await fetchWithTimeout(SHEET_URL + separator + "cache=" + Date.now());
+          return parseSheetResponse(payload);
+        } catch (error) {
+          lastError = error;
+          if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
+        }
+      }
 
-        /*
-         * ==========================================
-         * AUTOMATYCZNE ODŚWIEŻANIE
-         *
-         * Co 60 sekund.
-         * ==========================================
-         */
+      throw lastError || new Error("Nie udało się pobrać danych.");
+    }
 
-        setInterval(
-            loadRadioStatus,
-            60 * 1000
-        );
+    function setConnection(message, type) {
+      ui.connection.textContent = message;
+      ui.connection.className = "connection" + (type ? " is-" + type : "");
+    }
 
-    </script>
+    function getStatusType(status) {
+      const text = normaliseKey(status);
+      if (/(awaria|offline|niedostep|nieaktywn|blad|error|problem)/.test(text)) return "alert";
+      if (/(online|aktywn|dziala|dostepn|gotow|ok)/.test(text)) return "live";
+      return "";
+    }
 
+    function applyValues(values) {
+      for (const field of FIELD_NAMES) {
+        ui[field].textContent = safeText(values[field], "—");
+      }
+
+      const statusType = getStatusType(values.status);
+      ui.panel.classList.toggle("is-live", statusType === "live");
+      ui.panel.classList.toggle("is-alert", statusType === "alert");
+    }
+
+    function saveCache(values) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          values: values,
+          version: 1
+        }));
+      } catch (error) {
+        console.warn("Nie udało się zapisać lokalnej kopii statusu.", error);
+      }
+    }
+
+    function readCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (!cached || cached.version !== 1 || !cached.values || !Number.isFinite(cached.savedAt)) return null;
+
+        const values = Object.create(null);
+        for (const field of FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "—");
+        }
+        return { savedAt: cached.savedAt, values: values };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function formatLocalTime(timestamp) {
+      return new Intl.DateTimeFormat("pl-PL", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(timestamp);
+    }
+
+    function updateClock() {
+      ui.clock.textContent = new Intl.DateTimeFormat("pl-PL", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).format(new Date());
+    }
+
+    function renderUnavailable() {
+      applyValues({
+        status: "Brak połączenia z danymi",
+        updated: "—",
+        frequency: "—",
+        network: "—",
+        qth: "—"
+      });
+      setConnection("Nie udało się pobrać danych. Spróbuj ponownie później.", "error");
+    }
+
+    async function refreshStatus() {
+      if (isLoading) return;
+
+      isLoading = true;
+      ui.refreshButton.disabled = true;
+      ui.refreshButton.textContent = "Odświeżanie…";
+      setConnection("Aktualizacja danych z arkusza…", "warning");
+
+      try {
+        const values = await loadFromSheet();
+        applyValues(values);
+        saveCache(values);
+        setConnection("Połączono z arkuszem · synchronizacja " + formatLocalTime(Date.now()), "success");
+      } catch (error) {
+        console.error("SP7KJR status error:", error);
+        const cached = readCache();
+
+        if (cached) {
+          applyValues(cached.values);
+          setConnection("Wyświetlane są ostatnie zapisane dane · " + formatLocalTime(cached.savedAt), "warning");
+        } else {
+          renderUnavailable();
+        }
+      } finally {
+        isLoading = false;
+        ui.refreshButton.disabled = false;
+        ui.refreshButton.textContent = "Odśwież teraz";
+      }
+    }
+
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+    ui.refreshButton.addEventListener("click", refreshStatus);
+
+    const cached = readCache();
+    if (cached) {
+      applyValues(cached.values);
+      setConnection("Wyświetlane są zapisane dane · trwa aktualizacja…", "warning");
+    }
+
+    updateClock();
+    window.setInterval(updateClock, 1000);
+    refreshStatus();
+    window.setInterval(refreshStatus, REFRESH_INTERVAL_MS);
+  </script>
 </body>
-
 </html>
-```
