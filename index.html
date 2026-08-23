@@ -994,23 +994,22 @@
     "use strict";
 
     const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
-    const STATUS_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&range=B2";
     const DATA_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
-    const QST_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&range=B7:B8";
     const REFRESH_INTERVAL_MS = 60 * 1000;
     const REQUEST_TIMEOUT_MS = 12 * 1000;
     const MAX_RETRIES = 2;
     const CACHE_KEY = "sp7kjr-radio-status-v2";
     const STATUS_FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
-    const OPTIONAL_FIELD_NAMES = ["comment", "notice"];
+    const OPTIONAL_FIELD_NAMES = ["comment"];
     const FIELD_NAMES = STATUS_FIELD_NAMES.concat(OPTIONAL_FIELD_NAMES);
 
     const fieldAliases = {
-      status: ["status", "stan"],
+      status: ["status", "status / notice", "stan"],
       updated: ["updated", "ostatnia aktualizacja", "aktualizacja"],
-      frequency: ["frequency", "czestotliwosc", "czestotliwosc / znak przemiennika", "przemiennik"],
+      frequency: ["frequency", "czestotliwosc", "czestotliwosc / przemiennik", "przemiennik"],
       network: ["network", "siec"],
-      qth: ["qth", "lokalizacja"]
+      qth: ["qth", "lokalizacja"],
+      comment: ["comment", "komentarz"]
     };
 
     const ui = {
@@ -1020,9 +1019,7 @@
       connection: document.getElementById("connection"),
       frequency: document.getElementById("frequency"),
       network: document.getElementById("network"),
-      notice: document.getElementById("noticeText"),
-      noticeCard: document.getElementById("noticeCard"),
-      panel: document.getElementById("statusPanel"),
+      connection: document.getElementById("connection"),
       qth: document.getElementById("qth"),
       refreshButton: document.getElementById("refreshButton"),
       status: document.getElementById("statusHeading"),
@@ -1071,12 +1068,6 @@
       return data;
     }
 
-    function parseStatusResponse(payload) {
-      const data = parseVisualizationResponse(payload);
-      const rows = data.table.rows;
-      return safeText(getCellValue(rows[0]?.c?.[0]), "—");
-    }
-
     function parseSheetResponse(payload) {
       const data = parseVisualizationResponse(payload);
       const values = Object.create(null);
@@ -1096,16 +1087,14 @@
         result[field] = safeText(sourceKey ? values[sourceKey] : null, "—");
       }
 
-      return result;
-    }
+      for (const field of OPTIONAL_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "", 900);
+      }
 
-    function parseQstResponse(payload) {
-      const data = parseVisualizationResponse(payload);
-      const rows = data.table.rows;
-      return {
-        comment: safeText(getCellValue(rows[0]?.c?.[0]), "", 900),
-        notice: safeText(getCellValue(rows[1]?.c?.[0]), "", 320)
-      };
+      return result;
     }
 
     async function fetchWithTimeout(url) {
@@ -1148,16 +1137,10 @@
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
         try {
           const timestamp = Date.now();
-          const [statusPayload, dataPayload, qstPayload] = await Promise.all([
-            fetchWithTimeout(STATUS_URL + "&cache=" + timestamp),
-            fetchWithTimeout(DATA_URL + "&cache=" + timestamp),
-            fetchWithTimeout(QST_URL + "&cache=" + timestamp)
-          ]);
-          const statusValue = parseStatusResponse(statusPayload);
+          const dataPayload = await fetchWithTimeout(DATA_URL + "&cache=" + timestamp);
           const dataValues = parseSheetResponse(dataPayload);
-          const qstValues = parseQstResponse(qstPayload);
           
-          return Object.assign({ status: statusValue }, dataValues, qstValues);
+          return dataValues;
         } catch (error) {
           lastError = error;
           if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
@@ -1198,10 +1181,7 @@
         ui[field].textContent = safeText(values[field], "—");
       }
 
-      const notice = safeText(values.notice, "", 320);
       const comment = safeText(values.comment, "", 900);
-      ui.notice.textContent = notice;
-      ui.noticeCard.hidden = !notice;
       ui.comment.textContent = comment;
       ui.commentCard.hidden = !comment;
 
@@ -1227,9 +1207,11 @@
         if (!cached || cached.version !== 1 || !cached.values || !Number.isFinite(cached.savedAt)) return null;
 
         const values = Object.create(null);
-        for (const field of FIELD_NAMES) {
-          const isOptional = OPTIONAL_FIELD_NAMES.includes(field);
-          values[field] = safeText(cached.values[field], isOptional ? "" : "—", isOptional ? 900 : 160);
+        for (const field of STATUS_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "—", 160);
+        }
+        for (const field of OPTIONAL_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "", 900);
         }
         return { savedAt: cached.savedAt, values: values };
       } catch (error) {
@@ -1262,8 +1244,7 @@
         frequency: "—",
         network: "—",
         qth: "—",
-        comment: "",
-        notice: ""
+        comment: ""
       });
       setConnection("Unable to load data. Please try again later.", "error");
     }
