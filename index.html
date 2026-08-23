@@ -994,7 +994,8 @@
     "use strict";
 
     const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
+    const STATUS_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&range=B2";
+    const DATA_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
     const QST_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=0&range=B7:B8";
     const REFRESH_INTERVAL_MS = 60 * 1000;
     const REQUEST_TIMEOUT_MS = 12 * 1000;
@@ -1070,6 +1071,12 @@
       return data;
     }
 
+    function parseStatusResponse(payload) {
+      const data = parseVisualizationResponse(payload);
+      const rows = data.table.rows;
+      return safeText(getCellValue(rows[0]?.c?.[0]), "—");
+    }
+
     function parseSheetResponse(payload) {
       const data = parseVisualizationResponse(payload);
       const values = Object.create(null);
@@ -1140,13 +1147,17 @@
 
       for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
         try {
-          const separator = SHEET_URL.includes("?") ? "&" : "?";
           const timestamp = Date.now();
-          const [statusPayload, qstPayload] = await Promise.all([
-            fetchWithTimeout(SHEET_URL + separator + "cache=" + timestamp),
-            fetchWithTimeout(QST_URL + separator + "cache=" + timestamp)
+          const [statusPayload, dataPayload, qstPayload] = await Promise.all([
+            fetchWithTimeout(STATUS_URL + "&cache=" + timestamp),
+            fetchWithTimeout(DATA_URL + "&cache=" + timestamp),
+            fetchWithTimeout(QST_URL + "&cache=" + timestamp)
           ]);
-          return Object.assign(parseSheetResponse(statusPayload), parseQstResponse(qstPayload));
+          const statusValue = parseStatusResponse(statusPayload);
+          const dataValues = parseSheetResponse(dataPayload);
+          const qstValues = parseQstResponse(qstPayload);
+          
+          return Object.assign({ status: statusValue }, dataValues, qstValues);
         } catch (error) {
           lastError = error;
           if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
