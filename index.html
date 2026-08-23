@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com;">
   <title>SP7KJR · Radio Status</title>
   <style>
     :root {
@@ -27,6 +27,45 @@
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
+    /* Theme CSS Variables */
+    :root {
+      --theme-primary: #54d7ff;
+      --theme-primary-soft: rgba(84, 215, 255, .14);
+      --theme-accent-1: #3a7c8e;
+      --theme-accent-2: #2a5c7e;
+      --theme-glow: rgba(84, 215, 255, .6);
+    }
+
+    /* OFFLINE Theme - Black & Navy */
+    body.theme-offline {
+      --theme-primary: #54d7ff;
+      --theme-primary-soft: rgba(84, 215, 255, .14);
+      --theme-accent-1: #1a3a52;
+      --theme-accent-2: #0f2438;
+      --theme-glow: rgba(84, 215, 255, .4);
+    }
+
+    body.theme-offline::before {
+      background-image:
+        linear-gradient(rgba(26, 58, 82, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(26, 58, 82, .08) 1px, transparent 1px);
+    }
+
+    /* QRL/DND Theme - Black & Red */
+    body.theme-qrl {
+      --theme-primary: #ff6b7a;
+      --theme-primary-soft: rgba(255, 107, 122, .14);
+      --theme-accent-1: #4a1a1f;
+      --theme-accent-2: #2a0f12;
+      --theme-glow: rgba(255, 107, 122, .5);
+    }
+
+    body.theme-qrl::before {
+      background-image:
+        linear-gradient(rgba(138, 26, 35, .08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(138, 26, 35, .08) 1px, transparent 1px);
+    }
+
     * { box-sizing: border-box; }
 
     html { background: var(--bg); }
@@ -40,6 +79,21 @@
         radial-gradient(circle at 12% 0%, rgba(55, 169, 222, .20), transparent 30rem),
         radial-gradient(circle at 90% 84%, rgba(52, 218, 165, .13), transparent 26rem),
         linear-gradient(135deg, #07111d 0%, #070b12 48%, #0a121e 100%);
+      transition: background 0.4s ease;
+    }
+
+    body.theme-offline {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(26, 58, 82, .15), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(26, 58, 82, .10), transparent 26rem),
+        linear-gradient(135deg, #0a1420 0%, #070b12 48%, #0d141f 100%);
+    }
+
+    body.theme-qrl {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(138, 26, 35, .15), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(200, 50, 60, .10), transparent 26rem),
+        linear-gradient(135deg, #1a0a0c 0%, #070b12 48%, #1f0d0f 100%);
     }
 
     body::before {
@@ -54,6 +108,7 @@
         linear-gradient(90deg, rgba(120, 166, 202, .06) 1px, transparent 1px);
       background-size: 42px 42px;
       mask-image: linear-gradient(to bottom, black, transparent 82%);
+      transition: background-image 0.4s ease;
     }
 
     button { font: inherit; }
@@ -87,11 +142,12 @@
       flex: 0 0 52px;
       place-items: center;
       overflow: hidden;
-      border: 1px solid rgba(84, 215, 255, .38);
+      border: 1px solid var(--theme-primary);
       border-radius: 15px;
-      color: var(--cyan);
-      background: linear-gradient(145deg, rgba(84, 215, 255, .17), rgba(84, 215, 255, .03));
+      color: var(--theme-primary);
+      background: linear-gradient(145deg, var(--theme-primary-soft), rgba(84, 215, 255, .03));
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), 0 12px 28px rgba(0, 0, 0, .2);
+      transition: all 0.4s ease;
     }
 
     .signal-mark::before,
@@ -229,6 +285,17 @@
       border-radius: 28px;
       background: linear-gradient(135deg, rgba(18, 34, 51, .96), rgba(9, 17, 28, .95));
       box-shadow: 0 24px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05);
+      transition: all 0.4s ease;
+    }
+
+    body.theme-offline .status-panel {
+      background: linear-gradient(135deg, rgba(15, 30, 46, .96), rgba(7, 15, 24, .95));
+      border-color: rgba(26, 58, 82, .3);
+    }
+
+    body.theme-qrl .status-panel {
+      background: linear-gradient(135deg, rgba(46, 15, 20, .96), rgba(24, 7, 12, .95));
+      border-color: rgba(138, 26, 35, .3);
     }
 
     .status-panel::after {
@@ -238,10 +305,12 @@
       width: 240px;
       height: 240px;
       content: "";
-      border: 1px solid rgba(84, 215, 255, .16);
+      border: 1px solid var(--theme-primary);
       border-radius: 50%;
-      box-shadow: 0 0 0 24px rgba(84, 215, 255, .035), 0 0 0 48px rgba(84, 215, 255, .02);
+      box-shadow: 0 0 0 24px var(--theme-primary-soft), 0 0 0 48px rgba(84, 215, 255, .02);
       pointer-events: none;
+      opacity: 0.6;
+      transition: all 0.4s ease;
     }
 
     .status-topline {
@@ -257,8 +326,9 @@
       width: 9px;
       height: 9px;
       border-radius: 50%;
-      background: var(--amber);
-      box-shadow: 0 0 0 5px rgba(255, 201, 104, .11), 0 0 16px rgba(255, 201, 104, .6);
+      background: var(--theme-primary);
+      box-shadow: 0 0 0 5px var(--theme-primary-soft), 0 0 16px var(--theme-glow);
+      transition: all 0.4s ease;
     }
 
     .status-value {
@@ -313,6 +383,17 @@
       border-radius: var(--radius);
       background: var(--panel);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+      transition: all 0.4s ease;
+    }
+
+    body.theme-offline .data-card {
+      background: rgba(10, 20, 35, .86);
+      border-color: rgba(26, 58, 82, .2);
+    }
+
+    body.theme-qrl .data-card {
+      background: rgba(35, 10, 15, .86);
+      border-color: rgba(138, 26, 35, .2);
     }
 
     .data-card--wide { grid-column: span 2; }
@@ -329,12 +410,13 @@
       height: 25px;
       flex: 0 0 25px;
       place-items: center;
-      border: 1px solid rgba(84, 215, 255, .18);
+      border: 1px solid var(--theme-primary);
       border-radius: 8px;
-      color: var(--cyan);
-      background: var(--cyan-soft);
+      color: var(--theme-primary);
+      background: var(--theme-primary-soft);
       font-size: 13px;
       font-weight: 800;
+      transition: all 0.4s ease;
     }
 
     .card-value {
@@ -358,6 +440,17 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: rgba(10, 18, 29, .68);
+      transition: all 0.4s ease;
+    }
+
+    body.theme-offline .comment-card {
+      background: rgba(7, 15, 25, .68);
+      border-color: rgba(26, 58, 82, .15);
+    }
+
+    body.theme-qrl .comment-card {
+      background: rgba(25, 7, 12, .68);
+      border-color: rgba(138, 26, 35, .15);
     }
 
     .comment-label {
@@ -366,7 +459,7 @@
 
     .comment-label::before {
       content: "⌁";
-      color: var(--cyan);
+      color: var(--theme-primary);
       font-size: 15px;
       line-height: 1;
     }
@@ -409,11 +502,11 @@
       justify-content: center;
       min-height: 42px;
       padding: 0 15px;
-      border: 1px solid rgba(84, 215, 255, .33);
+      border: 1px solid var(--theme-primary);
       border-radius: 11px;
       color: var(--text);
       cursor: pointer;
-      background: rgba(84, 215, 255, .09);
+      background: var(--theme-primary-soft);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05);
       font-size: 13px;
       font-weight: 700;
@@ -422,9 +515,19 @@
 
     .refresh:hover,
     .qrz-link:hover {
-      border-color: rgba(84, 215, 255, .65);
+      border-color: var(--theme-primary);
       background: rgba(84, 215, 255, .16);
       transform: translateY(-1px);
+    }
+
+    body.theme-offline .refresh:hover,
+    body.theme-offline .qrz-link:hover {
+      background: rgba(26, 58, 82, .25);
+    }
+
+    body.theme-qrl .refresh:hover,
+    body.theme-qrl .qrz-link:hover {
+      background: rgba(200, 50, 60, .25);
     }
 
     .qrz-link {
@@ -448,7 +551,7 @@
     .refresh:focus-visible,
     .qrz-link:focus-visible,
     .contact-link:focus-visible {
-      outline: 3px solid rgba(84, 215, 255, .46);
+      outline: 3px solid var(--theme-primary);
       outline-offset: 3px;
     }
 
@@ -458,6 +561,17 @@
       border: 1px solid var(--line);
       border-radius: var(--radius);
       background: rgba(12, 22, 35, .78);
+      transition: all 0.4s ease;
+    }
+
+    body.theme-offline .contact-card {
+      background: rgba(8, 16, 28, .78);
+      border-color: rgba(26, 58, 82, .15);
+    }
+
+    body.theme-qrl .contact-card {
+      background: rgba(28, 8, 12, .78);
+      border-color: rgba(138, 26, 35, .15);
     }
 
     .contact-heading {
@@ -497,8 +611,8 @@
     }
 
     .contact-link:hover {
-      border-color: rgba(84, 215, 255, .38);
-      background: rgba(84, 215, 255, .08);
+      border-color: var(--theme-primary);
+      background: var(--theme-primary-soft);
       transform: translateY(-1px);
     }
 
@@ -535,6 +649,15 @@
       background: rgba(255, 255, 255, .018);
       font-size: 12px;
       line-height: 1.5;
+      transition: all 0.4s ease;
+    }
+
+    body.theme-offline .abbreviation {
+      border-color: rgba(26, 58, 82, .15);
+    }
+
+    body.theme-qrl .abbreviation {
+      border-color: rgba(138, 26, 35, .15);
     }
 
     .abbreviation strong {
@@ -842,6 +965,21 @@
       ui.connection.className = "connection" + (type ? " is-" + type : "");
     }
 
+    function updateTheme(status) {
+      const body = document.body;
+      const normalizedStatus = normaliseKey(status);
+
+      // Remove all theme classes
+      body.classList.remove("theme-offline", "theme-qrl");
+
+      // Add appropriate theme based on status
+      if (normalizedStatus.includes("offline")) {
+        body.classList.add("theme-offline");
+      } else if (normalizedStatus.includes("qrl") || normalizedStatus.includes("dnd")) {
+        body.classList.add("theme-qrl");
+      }
+    }
+
     function applyValues(values) {
       for (const field of STATUS_FIELD_NAMES) {
         ui[field].textContent = safeText(values[field], "—");
@@ -854,6 +992,8 @@
       ui.comment.textContent = comment;
       ui.commentCard.hidden = !comment;
 
+      // Update theme based on status
+      updateTheme(values.status);
     }
 
     function saveCache(values) {
