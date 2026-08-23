@@ -34,6 +34,7 @@
       --theme-accent-1: #3a7c8e;
       --theme-accent-2: #2a5c7e;
       --theme-glow: rgba(84, 215, 255, .6);
+      --theme-pulse: none;
     }
 
     /* OFFLINE Theme - Black & Navy */
@@ -66,6 +67,78 @@
         linear-gradient(90deg, rgba(138, 26, 35, .08) 1px, transparent 1px);
     }
 
+    /* SCAN/QSX Theme - Vivid Green & Red ON AIR */
+    body.theme-onair {
+      --theme-primary: #00ff6f;
+      --theme-primary-soft: rgba(0, 255, 111, .18);
+      --theme-accent-1: #1a4d2e;
+      --theme-accent-2: #0d2818;
+      --theme-glow: rgba(0, 255, 111, .7);
+      --theme-pulse: pulse-onair 2s infinite;
+    }
+
+    @keyframes pulse-onair {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.85; }
+    }
+
+    body.theme-onair::before {
+      background-image:
+        linear-gradient(rgba(0, 100, 50, .12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 100, 50, .12) 1px, transparent 1px);
+      animation: var(--theme-pulse);
+    }
+
+    body.theme-onair {
+      animation: var(--theme-pulse);
+    }
+
+    /* MOBILE/PORTABLE Theme - Adventure/Travel Style */
+    body.theme-mobile {
+      --theme-primary: #ff9f1c;
+      --theme-primary-soft: rgba(255, 159, 28, .16);
+      --theme-accent-1: #5c3a1a;
+      --theme-accent-2: #3d2810;
+      --theme-glow: rgba(255, 159, 28, .5);
+    }
+
+    body.theme-mobile::before {
+      background-image:
+        linear-gradient(45deg, rgba(100, 60, 30, .08) 1px, transparent 1px),
+        linear-gradient(-45deg, rgba(100, 60, 30, .08) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+
+    /* ALERT/QAZ Theme - Red & Orange Alarm */
+    body.theme-alert {
+      --theme-primary: #ff4444;
+      --theme-primary-soft: rgba(255, 68, 68, .18);
+      --theme-accent-1: #7a1a1a;
+      --theme-accent-2: #4d0f0f;
+      --theme-glow: rgba(255, 68, 68, .8);
+      --theme-pulse: pulse-alert 1s infinite;
+    }
+
+    @keyframes pulse-alert {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+
+    body.theme-alert::before {
+      background-image:
+        linear-gradient(rgba(150, 30, 30, .12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(150, 30, 30, .12) 1px, transparent 1px);
+      animation: var(--theme-pulse);
+    }
+
+    body.theme-alert {
+      animation: var(--theme-pulse);
+    }
+
+    body.theme-alert .indicator {
+      animation: pulse-alert 1s infinite;
+    }
+
     * { box-sizing: border-box; }
 
     html { background: var(--bg); }
@@ -94,6 +167,27 @@
         radial-gradient(circle at 12% 0%, rgba(138, 26, 35, .15), transparent 30rem),
         radial-gradient(circle at 90% 84%, rgba(200, 50, 60, .10), transparent 26rem),
         linear-gradient(135deg, #1a0a0c 0%, #070b12 48%, #1f0d0f 100%);
+    }
+
+    body.theme-onair {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(0, 150, 80, .25), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(0, 200, 100, .18), transparent 26rem),
+        linear-gradient(135deg, #0a1a0f 0%, #070b12 48%, #0d1810 100%);
+    }
+
+    body.theme-mobile {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(200, 120, 50, .18), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(150, 80, 30, .12), transparent 26rem),
+        linear-gradient(135deg, #1a1208 0%, #070b12 48%, #1f1208 100%);
+    }
+
+    body.theme-alert {
+      background:
+        radial-gradient(circle at 12% 0%, rgba(200, 50, 50, .22), transparent 30rem),
+        radial-gradient(circle at 90% 84%, rgba(255, 80, 80, .15), transparent 26rem),
+        linear-gradient(135deg, #1a0a0a 0%, #070b12 48%, #1f0d0d 100%);
     }
 
     body::before {
@@ -298,6 +392,23 @@
       border-color: rgba(138, 26, 35, .3);
     }
 
+    body.theme-onair .status-panel {
+      background: linear-gradient(135deg, rgba(20, 60, 40, .96), rgba(10, 30, 20, .95));
+      border-color: rgba(0, 150, 80, .4);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05), 0 0 40px rgba(0, 255, 111, .2);
+    }
+
+    body.theme-mobile .status-panel {
+      background: linear-gradient(135deg, rgba(60, 40, 20, .96), rgba(30, 20, 10, .95));
+      border-color: rgba(200, 120, 50, .3);
+    }
+
+    body.theme-alert .status-panel {
+      background: linear-gradient(135deg, rgba(60, 20, 20, .96), rgba(30, 10, 10, .95));
+      border-color: rgba(200, 50, 50, .4);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .05), 0 0 40px rgba(255, 68, 68, .2);
+    }
+
     .status-panel::after {
       position: absolute;
       top: -70px;
@@ -341,6 +452,16 @@
       letter-spacing: -.04em;
       line-height: 1.04;
       overflow-wrap: anywhere;
+    }
+
+    body.theme-onair .status-value {
+      color: #00ff6f;
+      text-shadow: 0 0 20px rgba(0, 255, 111, .4);
+    }
+
+    body.theme-alert .status-value {
+      color: #ff4444;
+      text-shadow: 0 0 20px rgba(255, 68, 68, .4);
     }
 
     .connection {
@@ -394,6 +515,21 @@
     body.theme-qrl .data-card {
       background: rgba(35, 10, 15, .86);
       border-color: rgba(138, 26, 35, .2);
+    }
+
+    body.theme-onair .data-card {
+      background: rgba(15, 40, 30, .86);
+      border-color: rgba(0, 150, 80, .2);
+    }
+
+    body.theme-mobile .data-card {
+      background: rgba(40, 28, 15, .86);
+      border-color: rgba(200, 120, 50, .2);
+    }
+
+    body.theme-alert .data-card {
+      background: rgba(40, 15, 15, .86);
+      border-color: rgba(200, 50, 50, .2);
     }
 
     .data-card--wide { grid-column: span 2; }
@@ -451,6 +587,21 @@
     body.theme-qrl .comment-card {
       background: rgba(25, 7, 12, .68);
       border-color: rgba(138, 26, 35, .15);
+    }
+
+    body.theme-onair .comment-card {
+      background: rgba(10, 30, 20, .68);
+      border-color: rgba(0, 150, 80, .15);
+    }
+
+    body.theme-mobile .comment-card {
+      background: rgba(30, 20, 10, .68);
+      border-color: rgba(200, 120, 50, .15);
+    }
+
+    body.theme-alert .comment-card {
+      background: rgba(30, 10, 10, .68);
+      border-color: rgba(200, 50, 50, .15);
     }
 
     .comment-label {
@@ -530,6 +681,24 @@
       background: rgba(200, 50, 60, .25);
     }
 
+    body.theme-onair .refresh:hover,
+    body.theme-onair .qrz-link:hover {
+      background: rgba(0, 255, 111, .25);
+      border-color: rgba(0, 255, 111, .8);
+    }
+
+    body.theme-mobile .refresh:hover,
+    body.theme-mobile .qrz-link:hover {
+      background: rgba(255, 159, 28, .25);
+      border-color: rgba(255, 159, 28, .8);
+    }
+
+    body.theme-alert .refresh:hover,
+    body.theme-alert .qrz-link:hover {
+      background: rgba(255, 68, 68, .25);
+      border-color: rgba(255, 68, 68, .8);
+    }
+
     .qrz-link {
       border-color: rgba(98, 230, 167, .3);
       color: var(--green);
@@ -572,6 +741,21 @@
     body.theme-qrl .contact-card {
       background: rgba(28, 8, 12, .78);
       border-color: rgba(138, 26, 35, .15);
+    }
+
+    body.theme-onair .contact-card {
+      background: rgba(8, 28, 18, .78);
+      border-color: rgba(0, 150, 80, .15);
+    }
+
+    body.theme-mobile .contact-card {
+      background: rgba(28, 18, 8, .78);
+      border-color: rgba(200, 120, 50, .15);
+    }
+
+    body.theme-alert .contact-card {
+      background: rgba(28, 8, 8, .78);
+      border-color: rgba(200, 50, 50, .15);
     }
 
     .contact-heading {
@@ -658,6 +842,18 @@
 
     body.theme-qrl .abbreviation {
       border-color: rgba(138, 26, 35, .15);
+    }
+
+    body.theme-onair .abbreviation {
+      border-color: rgba(0, 150, 80, .15);
+    }
+
+    body.theme-mobile .abbreviation {
+      border-color: rgba(200, 120, 50, .15);
+    }
+
+    body.theme-alert .abbreviation {
+      border-color: rgba(200, 50, 50, .15);
     }
 
     .abbreviation strong {
@@ -970,13 +1166,19 @@
       const normalizedStatus = normaliseKey(status);
 
       // Remove all theme classes
-      body.classList.remove("theme-offline", "theme-qrl");
+      body.classList.remove("theme-offline", "theme-qrl", "theme-onair", "theme-mobile", "theme-alert");
 
       // Add appropriate theme based on status
       if (normalizedStatus.includes("offline")) {
         body.classList.add("theme-offline");
       } else if (normalizedStatus.includes("qrl") || normalizedStatus.includes("dnd")) {
         body.classList.add("theme-qrl");
+      } else if (normalizedStatus.includes("scan") || normalizedStatus.includes("qsx")) {
+        body.classList.add("theme-onair");
+      } else if (normalizedStatus.includes("mobil") || normalizedStatus.includes("portable")) {
+        body.classList.add("theme-mobile");
+      } else if (normalizedStatus.includes("qaz") || normalizedStatus.includes("alert")) {
+        body.classList.add("theme-alert");
       }
     }
 
