@@ -244,14 +244,6 @@
       pointer-events: none;
     }
 
-    .status-panel.is-live {
-      border-color: rgba(98, 230, 167, .3);
-    }
-
-    .status-panel.is-alert {
-      border-color: rgba(255, 121, 134, .32);
-    }
-
     .status-topline {
       position: relative;
       z-index: 1;
@@ -267,16 +259,6 @@
       border-radius: 50%;
       background: var(--amber);
       box-shadow: 0 0 0 5px rgba(255, 201, 104, .11), 0 0 16px rgba(255, 201, 104, .6);
-    }
-
-    .is-live .indicator {
-      background: var(--green);
-      box-shadow: 0 0 0 5px rgba(98, 230, 167, .11), 0 0 16px rgba(98, 230, 167, .6);
-    }
-
-    .is-alert .indicator {
-      background: var(--red);
-      box-shadow: 0 0 0 5px rgba(255, 121, 134, .11), 0 0 16px rgba(255, 121, 134, .6);
     }
 
     .status-value {
@@ -334,20 +316,6 @@
     }
 
     .data-card--wide { grid-column: span 2; }
-
-    .dashboard.is-compact .data-card--adaptive {
-      min-height: 118px;
-      padding: 17px 18px;
-    }
-
-    .dashboard.is-compact .data-card--adaptive .card-value {
-      margin-top: 14px;
-      font-size: clamp(18px, 3.5vw, 24px);
-    }
-
-    .dashboard.is-compact .data-card--adaptive .card-label {
-      font-size: 10px;
-    }
 
     .card-label {
       display: flex;
@@ -638,18 +606,18 @@
       <p class="connection" id="connection" role="status" aria-live="polite">Connecting to the status sheet</p>
     </section>
 
-    <section class="dashboard" id="dashboard" aria-label="Station details">
+    <section class="dashboard" aria-label="Station details">
       <article class="data-card">
         <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Last updated</p>
         <p class="card-value" id="updated">—</p>
       </article>
 
-      <article class="data-card data-card--adaptive" id="networkCard">
+      <article class="data-card">
         <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Network</p>
         <p class="card-value" id="network">—</p>
       </article>
 
-      <article class="data-card data-card--wide data-card--adaptive" id="frequencyCard">
+      <article class="data-card data-card--wide">
         <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Frequency / repeater</p>
         <p class="card-value" id="frequency">—</p>
       </article>
@@ -730,11 +698,8 @@
       comment: document.getElementById("commentText"),
       commentCard: document.getElementById("commentCard"),
       connection: document.getElementById("connection"),
-      dashboard: document.getElementById("dashboard"),
       frequency: document.getElementById("frequency"),
-      frequencyCard: document.getElementById("frequencyCard"),
       network: document.getElementById("network"),
-      networkCard: document.getElementById("networkCard"),
       notice: document.getElementById("noticeText"),
       noticeCard: document.getElementById("noticeCard"),
       panel: document.getElementById("statusPanel"),
@@ -877,40 +842,7 @@
       ui.connection.className = "connection" + (type ? " is-" + type : "");
     }
 
-    function getStatusType(status) {
-      const text = normaliseKey(status);
-      if (/(fault|offline|unavailable|inactive|error|issue|awaria|niedostep|nieaktywn|blad|problem)/.test(text)) return "alert";
-      if (/(online|active|operational|available|ready|running|ok|aktywn|dziala|dostepn|gotow)/.test(text)) return "live";
-      return "";
-    }
-
-    function getStatusLayout(status) {
-      const text = normaliseKey(status);
-      const containsStatusWord = function (words) {
-        return new RegExp("(^|[^a-z0-9])(" + words + ")(?=$|[^a-z0-9])").test(text);
-      };
-
-      if (containsStatusWord("offline|qrl|dnd|nieaktywny|nieaktywna") || text.includes("do not disturb")) {
-        return "reduced";
-      }
-
-      if (containsStatusWord("scan|skan")) {
-        return "compact";
-      }
-
-      return "full";
-    }
-
-    function setDashboardLayout(status, isConfirmed) {
-      const layout = isConfirmed ? getStatusLayout(status) : "full";
-      const shouldHideConditionalCards = layout === "reduced";
-
-      ui.networkCard.hidden = shouldHideConditionalCards;
-      ui.frequencyCard.hidden = shouldHideConditionalCards;
-      ui.dashboard.classList.toggle("is-compact", layout === "compact");
-    }
-
-    function applyValues(values, isConfirmed) {
+    function applyValues(values) {
       for (const field of STATUS_FIELD_NAMES) {
         ui[field].textContent = safeText(values[field], "—");
       }
@@ -922,11 +854,6 @@
       ui.comment.textContent = comment;
       ui.commentCard.hidden = !comment;
 
-      setDashboardLayout(values.status, Boolean(isConfirmed));
-
-      const statusType = getStatusType(values.status);
-      ui.panel.classList.toggle("is-live", statusType === "live");
-      ui.panel.classList.toggle("is-alert", statusType === "alert");
     }
 
     function saveCache(values) {
@@ -998,7 +925,7 @@
 
       try {
         const values = await loadFromSheet();
-        applyValues(values, true);
+        applyValues(values);
         saveCache(values);
         setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
       } catch (error) {
