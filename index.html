@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com https://logbook.qrz.com">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com;">
   <title>SP7KJR · Radio Status</title>
   <style>
     :root {
@@ -861,66 +861,6 @@
       font-weight: 750;
     }
 
-    .logbook-section {
-      margin-top: 20px;
-    }
-
-    .logbook-heading {
-      margin: 0 0 12px;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-    }
-
-    .logbook-intro {
-      max-width: 76ch;
-      margin: 0 0 16px;
-      color: var(--dim);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .logbook-frame {
-      overflow: hidden;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: rgba(10, 18, 29, .4);
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .02);
-    }
-
-    body.theme-offline .logbook-frame {
-      background: rgba(7, 15, 25, .4);
-      border-color: rgba(26, 58, 82, .15);
-    }
-
-    body.theme-qrl .logbook-frame {
-      background: rgba(25, 7, 12, .4);
-      border-color: rgba(138, 26, 35, .15);
-    }
-
-    body.theme-onair .logbook-frame {
-      background: rgba(10, 30, 20, .4);
-      border-color: rgba(0, 150, 80, .15);
-    }
-
-    body.theme-mobile .logbook-frame {
-      background: rgba(30, 20, 10, .4);
-      border-color: rgba(200, 120, 50, .15);
-    }
-
-    body.theme-alert .logbook-frame {
-      background: rgba(30, 10, 10, .4);
-      border-color: rgba(200, 50, 50, .15);
-    }
-
-    .logbook-frame iframe {
-      display: block;
-      width: 100%;
-      border: none;
-    }
-
     .site-footer {
       display: flex;
       justify-content: space-between;
@@ -1044,14 +984,6 @@
       <p class="abbreviation"><strong>QSX, RX/TX</strong> – Receiving, Transmit</p>
     </aside>
 
-    <section class="logbook-section" aria-labelledby="logbookHeading">
-      <h2 class="logbook-heading" id="logbookHeading">Logbook</h2>
-      <p class="logbook-intro">Since 27 Aug 2026: all stationary QSOs + selected /M and /P QSOs are logged here. Other /M and /P QSOs and all earlier QSOs are in the paper logbook.</p>
-      <div class="logbook-frame">
-        <iframe title="SP7KJR QRZ Logbook" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/SP7KJR/"></iframe>
-      </div>
-    </section>
-
     <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
@@ -1066,137 +998,300 @@
     const REFRESH_INTERVAL_MS = 60 * 1000;
     const REQUEST_TIMEOUT_MS = 12 * 1000;
     const MAX_RETRIES = 2;
+    const CACHE_KEY = "sp7kjr-radio-status-v2";
+    const STATUS_FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+    const OPTIONAL_FIELD_NAMES = ["comment"];
+    const FIELD_NAMES = STATUS_FIELD_NAMES.concat(OPTIONAL_FIELD_NAMES);
 
-    const statusPanel = document.getElementById("statusPanel");
-    const statusHeading = document.getElementById("statusHeading");
-    const connectionStatus = document.getElementById("connection");
-    const refreshButton = document.getElementById("refreshButton");
-    const noticeCard = document.getElementById("noticeCard");
-    const noticeText = document.getElementById("noticeText");
-    const commentCard = document.getElementById("commentCard");
-    const commentText = document.getElementById("commentText");
+    const fieldAliases = {
+      status: ["status", "status / notice", "stan"],
+      updated: ["updated", "ostatnia aktualizacja", "aktualizacja"],
+      frequency: ["frequency", "czestotliwosc", "czestotliwosc / przemiennik", "przemiennik"],
+      network: ["network", "siec"],
+      qth: ["qth", "lokalizacja"],
+      comment: ["comment", "komentarz"]
+    };
 
-    const dataElements = {
-      updated: document.getElementById("updated"),
-      network: document.getElementById("network"),
+    const ui = {
+      clock: document.getElementById("clock"),
+      comment: document.getElementById("commentText"),
+      commentCard: document.getElementById("commentCard"),
+      connection: document.getElementById("connection"),
       frequency: document.getElementById("frequency"),
+      network: document.getElementById("network"),
+      connection: document.getElementById("connection"),
       qth: document.getElementById("qth"),
+      refreshButton: document.getElementById("refreshButton"),
+      status: document.getElementById("statusHeading"),
+      updated: document.getElementById("updated")
     };
 
-    const themes = {
-      "ONLINE": "default",
-      "OFFLINE": "theme-offline",
-      "QRL": "theme-qrl",
-      "DND": "theme-qrl",
-      "SCAN": "theme-onair",
-      "QSX": "theme-onair",
-      "ON AIR": "theme-onair",
-      "MOBILE": "theme-mobile",
-      "PORTABLE": "theme-mobile",
-      "ALERT": "theme-alert",
-      "QAZ": "theme-alert",
-    };
+    let isLoading = false;
 
-    async function fetchData(retryCount = 0) {
+    function normaliseKey(value) {
+      return String(value ?? "")
+        .trim()
+        .toLocaleLowerCase("en-US")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
+    }
+
+    function safeText(value, fallback, maxLength = 160) {
+      const text = String(value ?? "").replace(/\s+/g, " ").trim();
+      if (!text) return fallback;
+      return text.length > maxLength ? text.slice(0, maxLength - 1) + "…" : text;
+    }
+
+    function getCellValue(cell) {
+      if (!cell || typeof cell !== "object") return null;
+      return cell.f ?? cell.v ?? null;
+    }
+
+    function parseVisualizationResponse(payload) {
+      const prefix = "google.visualization.Query.setResponse(";
+      const start = payload.indexOf(prefix);
+      if (start < 0) throw new Error("Unable to identify the sheet response format.");
+
+      const json = payload
+        .slice(start + prefix.length)
+        .replace(/\)\s*;?\s*$/, "")
+        .trim();
+
+      if (!json) throw new Error("The sheet returned no data.");
+      const data = JSON.parse(json);
+
+      if (!data.table || !Array.isArray(data.table.rows)) {
+        throw new Error("The sheet response does not contain a data table.");
+      }
+
+      return data;
+    }
+
+    function parseSheetResponse(payload) {
+      const data = parseVisualizationResponse(payload);
+      const values = Object.create(null);
+
+      for (const row of data.table.rows) {
+        const key = getCellValue(row?.c?.[0]);
+        const value = getCellValue(row?.c?.[1]);
+        if (key === null || key === undefined || value === null || value === undefined) continue;
+        values[normaliseKey(key)] = value;
+      }
+
+      const result = Object.create(null);
+      for (const field of STATUS_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "—");
+      }
+
+      for (const field of OPTIONAL_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "", 900);
+      }
+
+      return result;
+    }
+
+    async function fetchWithTimeout(url) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(function () {
+        controller.abort();
+      }, REQUEST_TIMEOUT_MS);
+
       try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+        const response = await fetch(url, {
+          cache: "no-store",
+          credentials: "omit",
+          signal: controller.signal
+        });
 
-        const response = await fetch(DATA_URL, { signal: controller.signal });
-        clearTimeout(timeoutId);
-
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-        const text = await response.text();
-        const jsonMatch = text.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) throw new Error("Invalid response format");
-
-        const data = JSON.parse(jsonMatch[0]);
-        updateUI(data);
-        updateConnectionStatus(true);
-      } catch (error) {
-        console.error("Fetch error:", error);
-        if (retryCount < MAX_RETRIES) {
-          setTimeout(() => fetchData(retryCount + 1), 2000);
-        } else {
-          updateConnectionStatus(false);
+        if (!response.ok) {
+          throw new Error("Server returned HTTP status " + response.status + ".");
         }
+
+        return await response.text();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Request timed out.");
+        }
+        throw error;
+      } finally {
+        window.clearTimeout(timeout);
       }
     }
 
-    function updateUI(data) {
-      try {
-        const rows = data.table?.rows || [];
-        if (rows.length === 0) {
-          statusHeading.textContent = "No data available";
-          return;
-        }
-
-        const statusRow = rows[0].c;
-        const status = statusRow[0]?.v || "Unknown";
-        const timestamp = statusRow[1]?.v || new Date().toLocaleString();
-
-        statusHeading.textContent = status;
-        dataElements.updated.textContent = new Date(timestamp).toLocaleString();
-
-        const themeClass = themes[status] || "default";
-        document.body.className = themeClass;
-
-        if (rows.length > 1) {
-          dataElements.network.textContent = rows[1].c[0]?.v || "—";
-          dataElements.frequency.textContent = rows[1].c[1]?.v || "—";
-        }
-        if (rows.length > 2) {
-          dataElements.qth.textContent = rows[2].c[0]?.v || "—";
-        }
-        if (rows.length > 3) {
-          const notice = rows[3].c[0]?.v;
-          if (notice) {
-            noticeText.textContent = notice;
-            noticeCard.removeAttribute("hidden");
-          }
-        }
-        if (rows.length > 4) {
-          const comment = rows[4].c[0]?.v;
-          if (comment) {
-            commentText.textContent = comment;
-            commentCard.removeAttribute("hidden");
-          }
-        }
-      } catch (error) {
-        console.error("UI update error:", error);
-        statusHeading.textContent = "Error loading data";
-      }
-    }
-
-    function updateConnectionStatus(success) {
-      connectionStatus.className = success ? "connection is-success" : "connection is-error";
-      connectionStatus.textContent = success ? "Connected to the status sheet" : "Cannot reach the status sheet";
-    }
-
-    function updateClock() {
-      const now = new Date();
-      document.getElementById("clock").textContent = now.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
+    function delay(milliseconds) {
+      return new Promise(function (resolve) {
+        window.setTimeout(resolve, milliseconds);
       });
     }
 
-    document.getElementById("year").textContent = new Date().getFullYear();
+    async function loadFromSheet() {
+      let lastError;
 
-    refreshButton.addEventListener("click", () => {
-      refreshButton.disabled = true;
-      fetchData();
-      setTimeout(() => {
-        refreshButton.disabled = false;
-      }, 1000);
-    });
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+        try {
+          const timestamp = Date.now();
+          const dataPayload = await fetchWithTimeout(DATA_URL + "&cache=" + timestamp);
+          const dataValues = parseSheetResponse(dataPayload);
+          
+          return dataValues;
+        } catch (error) {
+          lastError = error;
+          if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
+        }
+      }
 
-    fetchData();
+      throw lastError || new Error("Unable to load status data.");
+    }
+
+    function setConnection(message, type) {
+      ui.connection.textContent = message;
+      ui.connection.className = "connection" + (type ? " is-" + type : "");
+    }
+
+    function updateTheme(status) {
+      const body = document.body;
+      const normalizedStatus = normaliseKey(status);
+
+      // Remove all theme classes
+      body.classList.remove("theme-offline", "theme-qrl", "theme-onair", "theme-mobile", "theme-alert");
+
+      // Add appropriate theme based on status
+      if (normalizedStatus.includes("offline")) {
+        body.classList.add("theme-offline");
+      } else if (normalizedStatus.includes("qrl") || normalizedStatus.includes("dnd")) {
+        body.classList.add("theme-qrl");
+      } else if (normalizedStatus.includes("scan") || normalizedStatus.includes("qsx")) {
+        body.classList.add("theme-onair");
+      } else if (normalizedStatus.includes("mobil") || normalizedStatus.includes("portable")) {
+        body.classList.add("theme-mobile");
+      } else if (normalizedStatus.includes("qaz") || normalizedStatus.includes("alert")) {
+        body.classList.add("theme-alert");
+      }
+    }
+
+    function applyValues(values) {
+      for (const field of STATUS_FIELD_NAMES) {
+        ui[field].textContent = safeText(values[field], "—");
+      }
+
+      const comment = safeText(values.comment, "", 900);
+      ui.comment.textContent = comment;
+      ui.commentCard.hidden = !comment;
+
+      // Update theme based on status
+      updateTheme(values.status);
+    }
+
+    function saveCache(values) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          values: values,
+          version: 1
+        }));
+      } catch (error) {
+        console.warn("Unable to save the local status cache.", error);
+      }
+    }
+
+    function readCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (!cached || cached.version !== 1 || !cached.values || !Number.isFinite(cached.savedAt)) return null;
+
+        const values = Object.create(null);
+        for (const field of STATUS_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "—", 160);
+        }
+        for (const field of OPTIONAL_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "", 900);
+        }
+        return { savedAt: cached.savedAt, values: values };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function formatLocalTime(timestamp) {
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(timestamp);
+    }
+
+    function updateClock() {
+      ui.clock.textContent = new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).format(new Date());
+    }
+
+    function renderUnavailable() {
+      applyValues({
+        status: "No connection to data",
+        updated: "—",
+        frequency: "—",
+        network: "—",
+        qth: "—",
+        comment: ""
+      });
+      setConnection("Unable to load data. Please try again later.", "error");
+    }
+
+    async function refreshStatus() {
+      if (isLoading) return;
+
+      isLoading = true;
+      ui.refreshButton.disabled = true;
+      ui.refreshButton.textContent = "Refreshing…";
+      setConnection("Refreshing data from the sheet…", "warning");
+
+      try {
+        const values = await loadFromSheet();
+        applyValues(values);
+        saveCache(values);
+        setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
+      } catch (error) {
+        console.error("SP7KJR status error:", error);
+        const cached = readCache();
+
+        if (cached) {
+          applyValues(cached.values);
+          setConnection("Displaying most recently saved data · " + formatLocalTime(cached.savedAt), "warning");
+        } else {
+          renderUnavailable();
+        }
+      } finally {
+        isLoading = false;
+        ui.refreshButton.disabled = false;
+        ui.refreshButton.textContent = "Refresh now";
+      }
+    }
+
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+    ui.refreshButton.addEventListener("click", refreshStatus);
+
+    const cached = readCache();
+    if (cached) {
+      applyValues(cached.values);
+      setConnection("Showing saved data · refreshing…", "warning");
+    }
+
     updateClock();
-    setInterval(updateClock, 1000);
-    setInterval(fetchData, REFRESH_INTERVAL_MS);
+    window.setInterval(updateClock, 1000);
+    refreshStatus();
+    window.setInterval(refreshStatus, REFRESH_INTERVAL_MS);
   </script>
 </body>
 </html>
