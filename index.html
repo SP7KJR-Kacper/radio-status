@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com https://logbook.qrz.com">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com;">
   <title>SP7KJR · Radio Status</title>
   <style>
     :root {
@@ -861,71 +861,6 @@
       font-weight: 750;
     }
 
-    .logbook-card {
-      margin-top: 20px;
-      padding: 21px 22px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: rgba(12, 22, 35, .78);
-      transition: all 0.4s ease;
-    }
-
-    body.theme-offline .logbook-card {
-      background: rgba(8, 16, 28, .78);
-      border-color: rgba(26, 58, 82, .15);
-    }
-
-    body.theme-qrl .logbook-card {
-      background: rgba(28, 8, 12, .78);
-      border-color: rgba(138, 26, 35, .15);
-    }
-
-    body.theme-onair .logbook-card {
-      background: rgba(8, 28, 18, .78);
-      border-color: rgba(0, 150, 80, .15);
-    }
-
-    body.theme-mobile .logbook-card {
-      background: rgba(28, 18, 8, .78);
-      border-color: rgba(200, 120, 50, .15);
-    }
-
-    body.theme-alert .logbook-card {
-      background: rgba(28, 8, 8, .78);
-      border-color: rgba(200, 50, 50, .15);
-    }
-
-    .logbook-heading {
-      margin: 0;
-      color: var(--muted);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-    }
-
-    .logbook-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 16px;
-      overflow-x: auto;
-    }
-
-    .logbook-container iframe {
-      border: none;
-      border-radius: 12px;
-      background: rgba(255, 255, 255, .02);
-    }
-
-    .logbook-note {
-      max-width: 76ch;
-      margin: 14px 0 0;
-      color: #bdcad7;
-      font-size: 13px;
-      line-height: 1.65;
-      overflow-wrap: anywhere;
-    }
-
     .site-footer {
       display: flex;
       justify-content: space-between;
@@ -951,7 +886,6 @@
       .action-group > * { flex: 1; }
       .contact-grid { grid-template-columns: 1fr; }
       .abbreviations { grid-template-columns: 1fr; }
-      .logbook-container iframe { height: 400px !important; }
       .site-footer { display: block; }
       .site-footer p + p { margin-top: 5px; }
     }
@@ -1050,14 +984,6 @@
       <p class="abbreviation"><strong>QSX, RX/TX</strong> – Receiving, Transmit</p>
     </aside>
 
-    <section class="logbook-card" aria-labelledby="logbookHeading">
-      <h2 class="logbook-heading" id="logbookHeading">Logbook</h2>
-      <div class="logbook-container">
-        <iframe align="top" frameborder="0" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/SP7KJR/" width="640"></iframe>
-      </div>
-      <p class="logbook-note">Since 27 Aug 2026: all stationary QSOs + selected /M and /P QSOs are logged here. Other /M and /P QSOs and all earlier QSOs are in the paper logbook.</p>
-    </section>
-
     <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
@@ -1072,150 +998,300 @@
     const REFRESH_INTERVAL_MS = 60 * 1000;
     const REQUEST_TIMEOUT_MS = 12 * 1000;
     const MAX_RETRIES = 2;
+    const CACHE_KEY = "sp7kjr-radio-status-v2";
+    const STATUS_FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+    const OPTIONAL_FIELD_NAMES = ["comment"];
+    const FIELD_NAMES = STATUS_FIELD_NAMES.concat(OPTIONAL_FIELD_NAMES);
 
-    const statusHeading = document.getElementById("statusHeading");
-    const statusPanel = document.getElementById("statusPanel");
-    const connectionStatus = document.getElementById("connection");
-    const updatedCard = document.getElementById("updated");
-    const networkCard = document.getElementById("network");
-    const frequencyCard = document.getElementById("frequency");
-    const qthCard = document.getElementById("qth");
-    const refreshButton = document.getElementById("refreshButton");
-    const commentCard = document.getElementById("commentCard");
-    const commentText = document.getElementById("commentText");
-    const noticeCard = document.getElementById("noticeCard");
-    const noticeText = document.getElementById("noticeText");
-    const clockElem = document.getElementById("clock");
-    const yearSpan = document.getElementById("year");
+    const fieldAliases = {
+      status: ["status", "status / notice", "stan"],
+      updated: ["updated", "ostatnia aktualizacja", "aktualizacja"],
+      frequency: ["frequency", "czestotliwosc", "czestotliwosc / przemiennik", "przemiennik"],
+      network: ["network", "siec"],
+      qth: ["qth", "lokalizacja"],
+      comment: ["comment", "komentarz"]
+    };
 
-    let lastUpdateTime = null;
-    let autoRefreshTimeout = null;
+    const ui = {
+      clock: document.getElementById("clock"),
+      comment: document.getElementById("commentText"),
+      commentCard: document.getElementById("commentCard"),
+      connection: document.getElementById("connection"),
+      frequency: document.getElementById("frequency"),
+      network: document.getElementById("network"),
+      connection: document.getElementById("connection"),
+      qth: document.getElementById("qth"),
+      refreshButton: document.getElementById("refreshButton"),
+      status: document.getElementById("statusHeading"),
+      updated: document.getElementById("updated")
+    };
 
-    yearSpan.textContent = new Date().getFullYear();
+    let isLoading = false;
 
-    function updateClock() {
-      const now = new Date();
-      const time = now.toLocaleTimeString("en-GB");
-      clockElem.textContent = time;
+    function normaliseKey(value) {
+      return String(value ?? "")
+        .trim()
+        .toLocaleLowerCase("en-US")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/\s+/g, " ");
     }
 
-    updateClock();
-    setInterval(updateClock, 1000);
+    function safeText(value, fallback, maxLength = 160) {
+      const text = String(value ?? "").replace(/\s+/g, " ").trim();
+      if (!text) return fallback;
+      return text.length > maxLength ? text.slice(0, maxLength - 1) + "…" : text;
+    }
 
-    async function fetchDataWithRetry(url, retries = MAX_RETRIES) {
-      for (let i = 0; i < retries; i++) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+    function getCellValue(cell) {
+      if (!cell || typeof cell !== "object") return null;
+      return cell.f ?? cell.v ?? null;
+    }
 
-          const response = await fetch(url, { signal: controller.signal });
-          clearTimeout(timeoutId);
+    function parseVisualizationResponse(payload) {
+      const prefix = "google.visualization.Query.setResponse(";
+      const start = payload.indexOf(prefix);
+      if (start < 0) throw new Error("Unable to identify the sheet response format.");
 
-          if (!response.ok) {
-            throw new Error("HTTP error: " + response.status);
-          }
+      const json = payload
+        .slice(start + prefix.length)
+        .replace(/\)\s*;?\s*$/, "")
+        .trim();
 
-          return await response.text();
-        } catch (err) {
-          if (i === retries - 1) throw err;
-        }
+      if (!json) throw new Error("The sheet returned no data.");
+      const data = JSON.parse(json);
+
+      if (!data.table || !Array.isArray(data.table.rows)) {
+        throw new Error("The sheet response does not contain a data table.");
       }
+
+      return data;
     }
 
-    async function parseAndDisplay() {
-      refreshButton.disabled = true;
-      connectionStatus.textContent = "Fetching data...";
-      connectionStatus.className = "connection";
+    function parseSheetResponse(payload) {
+      const data = parseVisualizationResponse(payload);
+      const values = Object.create(null);
+
+      for (const row of data.table.rows) {
+        const key = getCellValue(row?.c?.[0]);
+        const value = getCellValue(row?.c?.[1]);
+        if (key === null || key === undefined || value === null || value === undefined) continue;
+        values[normaliseKey(key)] = value;
+      }
+
+      const result = Object.create(null);
+      for (const field of STATUS_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "—");
+      }
+
+      for (const field of OPTIONAL_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "", 900);
+      }
+
+      return result;
+    }
+
+    async function fetchWithTimeout(url) {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(function () {
+        controller.abort();
+      }, REQUEST_TIMEOUT_MS);
 
       try {
-        const jsonText = await fetchDataWithRetry(DATA_URL);
-        const jsonMatch = jsonText.match(/google\.visualization\.Query\.setResponse\((.*)\);/);
+        const response = await fetch(url, {
+          cache: "no-store",
+          credentials: "omit",
+          signal: controller.signal
+        });
 
-        if (!jsonMatch) {
-          throw new Error("Invalid response format");
+        if (!response.ok) {
+          throw new Error("Server returned HTTP status " + response.status + ".");
         }
 
-        const data = JSON.parse(jsonMatch[1]).table.rows;
-
-        if (data.length === 0) {
-          throw new Error("No data found");
+        return await response.text();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Request timed out.");
         }
-
-        const statusValue = data[0].c[1]?.v || "OFFLINE";
-        const network = data[1]?.c[1]?.v || "—";
-        const frequency = data[2]?.c[1]?.v || "—";
-        const qth = data[3]?.c[1]?.v || "—";
-        const comment = data[4]?.c[1]?.v || null;
-        const notice = data[5]?.c[1]?.v || null;
-
-        statusHeading.textContent = statusValue;
-        networkCard.textContent = network;
-        frequencyCard.textContent = frequency;
-        qthCard.textContent = qth;
-
-        lastUpdateTime = new Date();
-        updatedCard.textContent = lastUpdateTime.toLocaleTimeString("en-GB");
-
-        if (comment) {
-          commentText.textContent = comment;
-          commentCard.hidden = false;
-        } else {
-          commentCard.hidden = true;
-        }
-
-        if (notice) {
-          noticeText.textContent = notice;
-          noticeCard.hidden = false;
-        } else {
-          noticeCard.hidden = true;
-        }
-
-        applyTheme(statusValue);
-
-        connectionStatus.textContent = "Connected";
-        connectionStatus.className = "connection is-success";
-      } catch (err) {
-        statusHeading.textContent = "Connection error";
-        connectionStatus.textContent = "Failed to load data";
-        connectionStatus.className = "connection is-error";
+        throw error;
       } finally {
-        refreshButton.disabled = false;
+        window.clearTimeout(timeout);
       }
     }
 
-    function applyTheme(status) {
-      const doc = document.documentElement;
-      doc.setAttribute("data-theme", status);
+    function delay(milliseconds) {
+      return new Promise(function (resolve) {
+        window.setTimeout(resolve, milliseconds);
+      });
+    }
 
+    async function loadFromSheet() {
+      let lastError;
+
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
+        try {
+          const timestamp = Date.now();
+          const dataPayload = await fetchWithTimeout(DATA_URL + "&cache=" + timestamp);
+          const dataValues = parseSheetResponse(dataPayload);
+          
+          return dataValues;
+        } catch (error) {
+          lastError = error;
+          if (attempt < MAX_RETRIES) await delay((attempt + 1) * 700);
+        }
+      }
+
+      throw lastError || new Error("Unable to load status data.");
+    }
+
+    function setConnection(message, type) {
+      ui.connection.textContent = message;
+      ui.connection.className = "connection" + (type ? " is-" + type : "");
+    }
+
+    function updateTheme(status) {
       const body = document.body;
+      const normalizedStatus = normaliseKey(status);
+
+      // Remove all theme classes
       body.classList.remove("theme-offline", "theme-qrl", "theme-onair", "theme-mobile", "theme-alert");
 
-      if (status.includes("OFFLINE") || status === "OFFLINE") {
+      // Add appropriate theme based on status
+      if (normalizedStatus.includes("offline")) {
         body.classList.add("theme-offline");
-      } else if (status.includes("QRL") || status.includes("DND")) {
+      } else if (normalizedStatus.includes("qrl") || normalizedStatus.includes("dnd")) {
         body.classList.add("theme-qrl");
-      } else if (status.includes("ON AIR") || status.includes("SCAN") || status.includes("QSX")) {
+      } else if (normalizedStatus.includes("scan") || normalizedStatus.includes("qsx")) {
         body.classList.add("theme-onair");
-      } else if (status.includes("MOBILE") || status.includes("PORTABLE")) {
+      } else if (normalizedStatus.includes("mobil") || normalizedStatus.includes("portable")) {
         body.classList.add("theme-mobile");
-      } else if (status.includes("ALERT") || status.includes("QAZ")) {
+      } else if (normalizedStatus.includes("qaz") || normalizedStatus.includes("alert")) {
         body.classList.add("theme-alert");
       }
     }
 
-    function scheduleAutoRefresh() {
-      clearTimeout(autoRefreshTimeout);
-      autoRefreshTimeout = setTimeout(() => {
-        parseAndDisplay().then(scheduleAutoRefresh);
-      }, REFRESH_INTERVAL_MS);
+    function applyValues(values) {
+      for (const field of STATUS_FIELD_NAMES) {
+        ui[field].textContent = safeText(values[field], "—");
+      }
+
+      const comment = safeText(values.comment, "", 900);
+      ui.comment.textContent = comment;
+      ui.commentCard.hidden = !comment;
+
+      // Update theme based on status
+      updateTheme(values.status);
     }
 
-    parseAndDisplay();
-    scheduleAutoRefresh();
+    function saveCache(values) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          values: values,
+          version: 1
+        }));
+      } catch (error) {
+        console.warn("Unable to save the local status cache.", error);
+      }
+    }
 
-    refreshButton.addEventListener("click", () => {
-      parseAndDisplay().then(scheduleAutoRefresh);
-    });
+    function readCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (!cached || cached.version !== 1 || !cached.values || !Number.isFinite(cached.savedAt)) return null;
+
+        const values = Object.create(null);
+        for (const field of STATUS_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "—", 160);
+        }
+        for (const field of OPTIONAL_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "", 900);
+        }
+        return { savedAt: cached.savedAt, values: values };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function formatLocalTime(timestamp) {
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(timestamp);
+    }
+
+    function updateClock() {
+      ui.clock.textContent = new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).format(new Date());
+    }
+
+    function renderUnavailable() {
+      applyValues({
+        status: "No connection to data",
+        updated: "—",
+        frequency: "—",
+        network: "—",
+        qth: "—",
+        comment: ""
+      });
+      setConnection("Unable to load data. Please try again later.", "error");
+    }
+
+    async function refreshStatus() {
+      if (isLoading) return;
+
+      isLoading = true;
+      ui.refreshButton.disabled = true;
+      ui.refreshButton.textContent = "Refreshing…";
+      setConnection("Refreshing data from the sheet…", "warning");
+
+      try {
+        const values = await loadFromSheet();
+        applyValues(values);
+        saveCache(values);
+        setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
+      } catch (error) {
+        console.error("SP7KJR status error:", error);
+        const cached = readCache();
+
+        if (cached) {
+          applyValues(cached.values);
+          setConnection("Displaying most recently saved data · " + formatLocalTime(cached.savedAt), "warning");
+        } else {
+          renderUnavailable();
+        }
+      } finally {
+        isLoading = false;
+        ui.refreshButton.disabled = false;
+        ui.refreshButton.textContent = "Refresh now";
+      }
+    }
+
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+    ui.refreshButton.addEventListener("click", refreshStatus);
+
+    const cached = readCache();
+    if (cached) {
+      applyValues(cached.values);
+      setConnection("Showing saved data · refreshing…", "warning");
+    }
+
+    updateClock();
+    window.setInterval(updateClock, 1000);
+    refreshStatus();
+    window.setInterval(refreshStatus, REFRESH_INTERVAL_MS);
   </script>
 </body>
 </html>
