@@ -7,6 +7,35 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; frame-src https://logbook.qrz.com;">  <title>SP7KJR · Radio Status</title>
   <style>
+      .logbook {
+    width: 100%;
+    max-width: 1100px;
+    margin: 40px auto 0;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  .logbook h2 {
+    margin: 0 0 6px;
+  }
+
+  .logbook-description {
+    margin: 0 0 16px;
+    opacity: 0.75;
+  }
+
+  .logbook-frame {
+    width: 100%;
+    height: 650px;
+    overflow: hidden;
+    border-radius: 12px;
+  }
+
+  .logbook-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
     :root {
       --bg: #070b12;
       --panel: rgba(14, 23, 36, .86);
@@ -982,8 +1011,23 @@
       <p class="abbreviation"><strong>Abbreviations:</strong> QRL, DND – Do Not Disturb</p>
       <p class="abbreviation"><strong>QSX, RX/TX</strong> – Receiving, Transmit</p>
     </aside>
-    <iframe align="top" frameborder="0" height="500" scrolling="yes" src="https://logbook.qrz.com/lbstat/SP7KJR/" width="640"></iframe>
-    <footer class="site-footer">
+<section class="logbook">
+  <h2>SP7KJR Logbook</h2>
+
+  <p class="logbook-description">
+    All home QSOs since 28 Aug 2026 + selected /M and /P.
+  </p>
+
+  <div class="logbook-frame">
+    <iframe
+      src="https://logbook.qrz.com/lbstat/SP7KJR/"
+      title="SP7KJR QRZ Logbook"
+      loading="lazy"
+      scrolling="yes"
+      frameborder="0">
+    </iframe>
+  </div>
+</section>    <footer class="site-footer">
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
     </footer>
