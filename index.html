@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; frame-src https://logbook.qrz.com https://www.google.com;">
-  <title>SP7KJR Radio Status</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; frame-src https://logbook.qrz.com https://www.google.com;">  <title>SP7KJR · Radio Status</title>
   <style>
       .logbook {
     width: 100%;
@@ -992,42 +991,6 @@
       font-weight: 750;
     }
 
-    .qsl-section {
-      width: 100%;
-      max-width: 1100px;
-      margin: 40px auto 0;
-      padding: 0 16px 12px;
-      box-sizing: border-box;
-    }
-
-    .qsl-card {
-      display: block;
-      margin: 0 auto;
-      padding: 18px 18px 12px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: rgba(10, 18, 29, .68);
-      box-shadow: 0 18px 40px rgba(0, 0, 0, .14);
-    }
-
-    .qsl-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      border: 1px solid rgba(154, 191, 225, .18);
-      border-radius: 12px;
-      background: #0b1220;
-    }
-
-    .qsl-caption {
-      margin: 12px 0 0;
-      color: var(--muted);
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: .04em;
-      text-align: center;
-    }
-
     .site-footer {
       display: flex;
       justify-content: space-between;
@@ -1037,69 +1000,38 @@
       border-top: 1px solid rgba(154, 191, 225, .1);
       color: var(--dim);
       font-size: 12px;
-      line-height: 1.5;
     }
 
     .site-footer p { margin: 0; }
 
     @media (max-width: 560px) {
-      .shell {
-        width: min(100% - 24px, 920px);
-        padding-top: 24px;
-      }
-      .site-header {
-        align-items: flex-start;
-      }
-      .clock {
-        display: none;
-      }
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
-      .data-card--wide {
-        grid-column: auto;
-      }
-      .controls {
-        align-items: flex-start;
-        flex-direction: column-reverse;
-      }
-      .action-group {
-        width: 100%;
-      }
-      .action-group > * {
-        flex: 1 1 100%;
-      }
-      .contact-grid {
-        grid-template-columns: 1fr;
-      }
-      .abbreviations {
-        grid-template-columns: 1fr;
-      }
-      .radio-map {
-        padding: 0;
-      }
-      .radio-map-frame {
-        height: 470px;
-        border-radius: 12px;
-      }
-      .frequencies {
-        padding: 0;
-      }
+      .shell { width: min(100% - 24px, 920px); padding-top: 24px; }
+      .site-header { align-items: flex-start; }
+      .clock { display: none; }
+      .dashboard { grid-template-columns: 1fr; }
+      .data-card--wide { grid-column: auto; }
+      .data-card { min-height: 126px; }
+      .controls { align-items: flex-start; flex-direction: column-reverse; }
+      .action-group { width: 100%; }
+      .action-group > * { flex: 1; }
+      .contact-grid { grid-template-columns: 1fr; }
+      .abbreviations { grid-template-columns: 1fr; }
+      .site-footer { display: block; }
+      .site-footer p + p { margin-top: 5px; }
+      .radio-map { padding: 0; }
+      .radio-map-frame { height: 470px; border-radius: 12px; }
+      .frequencies { padding: 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        scroll-behavior: auto !important;
-        transition: none !important;
-        animation: none !important;
-      }
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
     }
   </style>
 </head>
 <body>
   <main class="shell">
     <aside class="notice-card" id="noticeCard" role="alert" aria-live="assertive" hidden>
-      <p class="notice-label">QST / Station Notice</p>
+      <p class="notice-label">QST · Station Notice</p>
       <p class="notice-value" id="noticeText"></p>
     </aside>
 
@@ -1128,22 +1060,22 @@
 
     <section class="dashboard" aria-label="Station details">
       <article class="data-card">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">⏱</span>Last updated</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Last updated</p>
         <p class="card-value" id="updated">—</p>
       </article>
 
       <article class="data-card">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">◎</span>Network</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Network</p>
         <p class="card-value" id="network">—</p>
       </article>
 
       <article class="data-card data-card--wide">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>Frequency / repeater</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">↯</span>Frequency / repeater</p>
         <p class="card-value" id="frequency">—</p>
       </article>
 
       <article class="data-card data-card--wide">
-        <p class="card-label"><span class="card-icon" aria-hidden="true">⌁</span>QTH</p>
+        <p class="card-label"><span class="card-icon" aria-hidden="true">⌖</span>QTH</p>
         <p class="card-value" id="qth">—</p>
       </article>
     </section>
@@ -1151,7 +1083,7 @@
     <div class="controls">
       <p class="source-note">Data is read from a public Google Sheet and refreshed automatically every minute.</p>
       <div class="action-group">
-        <a class="qrz-link" href="https://www.qrz.com/db/SP7KJR" target="_blank" rel="noopener noreferrer">Station Info • QRZ</a>
+        <a class="qrz-link" href="https://www.qrz.com/db/SP7KJR" target="_blank" rel="noopener noreferrer">Station Info – QRZ</a>
         <button class="refresh" id="refreshButton" type="button">Refresh now</button>
       </div>
     </div>
@@ -1166,15 +1098,15 @@
       <p class="contact-intro">Call or message me for a QSO or any other radio-related matter.</p>
       <div class="contact-grid">
         <a class="contact-link" href="mailto:sp7kjr@icloud.com">
-          <span class="contact-type">E-mail</span>
+          <span class="contact-type">📧 E-mail</span>
           <span class="contact-value">sp7kjr@icloud.com</span>
         </a>
         <a class="contact-link" href="tel:+48422077540">
-          <span class="contact-type">Landline</span>
+          <span class="contact-type">☎️ Landline</span>
           <span class="contact-value">+48 42 207 75 40</span>
         </a>
         <a class="contact-link" href="tel:+48729922686">
-          <span class="contact-type">Mobile</span>
+          <span class="contact-type">📱 Mobile</span>
           <span class="contact-value">+48 729 922 686</span>
         </a>
       </div>
@@ -1184,93 +1116,95 @@
       <p class="abbreviation"><strong>Abbreviations:</strong> QRL, DND – Do Not Disturb</p>
       <p class="abbreviation"><strong>QSX, RX/TX</strong> – Receiving, Transmit</p>
     </aside>
+<section class="logbook">
+  <h2>SP7KJR Logbook</h2>
 
-    <section class="logbook">
-      <h2>SP7KJR Logbook</h2>
-      <p class="logbook-description">All home QSOs since 28 Aug 2026 + selected /M and /P.</p>
-      <div class="logbook-frame">
-        <iframe
-          src="https://logbook.qrz.com/lbstat/SP7KJR/"
-          title="SP7KJR QRZ Logbook"
-          loading="lazy"
-          scrolling="yes"
-          frameborder="0">
-        </iframe>
-      </div>
-    </section>
+  <p class="logbook-description">
+    All home QSOs since 28 Aug 2026 + selected /M and /P.
+  </p>
 
-    <section class="radio-map" aria-labelledby="radioMapHeading">
-      <h2 id="radioMapHeading">Mapa przemieszczania analogowych linków</h2>
-      <p class="radio-map-description">Interaktywny mapą krótkofalarska SP7KJR.</p>
+  <div class="logbook-frame">
+    <iframe
+      src="https://logbook.qrz.com/lbstat/SP7KJR/"
+      title="SP7KJR QRZ Logbook"
+      loading="lazy"
+      scrolling="yes"
+      frameborder="0">
+    </iframe>
+  </div>
+</section>
 
-      <div class="radio-map-frame">
-        <iframe
-          src="https://www.google.com/maps/d/embed?mid=1zc6GYvF-LQVaJyPT98SfChA6TpM4Wbs"
-          title="Mapa przemieszczania analogowych linków SP7KJR"
-          loading="lazy"
-          allowfullscreen>
-        </iframe>
-      </div>
-    </section>
+<section class="radio-map" aria-labelledby="radioMapHeading">
+  <h2 id="radioMapHeading">Mapa przemienników analogowych</h2>
+  <p class="radio-map-description">Interaktywna mapa krótkofalarska SP7KJR.</p>
 
-    <section class="frequencies" aria-labelledby="frequenciesHeading">
-      <h2 id="frequenciesHeading">📡 Frequency & Networks I Monitor</h2>
-      <aside class="frequency-callout" aria-label="Calling me">
-        <p><strong>Calling me:</strong> If my current status is <strong>SCAN</strong>, feel free to call me on any of the repeaters I use. I may be monitoring and ready for a QSO!</p>
-      </aside>
-      <div class="frequency-sections">
-        <article class="frequency-section">
-          <h3>1. Repeaters I Use</h3>
-          <p><em>Local repeaters and linked networks I regularly use or monitor.</em></p>
-        </article>
+  <div class="radio-map-frame">
+    <iframe
+      src="https://www.google.com/maps/d/embed?mid=1zc6GYvF--QVaJyPT98SfChA6TpM4Wbs"
+      title="Mapa przemienników analogowych SP7KJR"
+      loading="lazy"
+      allowfullscreen>
+    </iframe>
+  </div>
+</section>
 
-        <article class="frequency-section">
-          <h3>2. VHF Direct Frequencies</h3>
-          <p><strong>145.225 MHz</strong><br><strong>Modes:</strong> FM / C4FM<br><strong>Channel spacing:</strong> 25 kHz</p>
-          <p class="frequency-channel-list">145.2250 MHz 145.2500 MHz 145.2750 MHz 145.3000 MHz 145.3250 MHz 145.3500 MHz 145.3750 MHz 145.4000 MHz 145.4250 MHz 145.4500 MHz 145.4750 MHz 145.5000 MHz 145.5250 MHz 145.550 MHz</p>
-        </article>
+<section class="frequencies" aria-labelledby="frequenciesHeading">
+  <h2 id="frequenciesHeading">📡 Frequencies &amp; Networks I Monitor</h2>
 
-        <article class="frequency-section">
-          <h3>3. Digital Networks & Other Systems</h3>
-          <p><em>Occasional activity on:</em></p>
-          <ul>
-            <li><strong>WIRES-X</strong> (C4FM digital repeaters)</li>
-            <li><strong>EchoLink</strong></li>
-            <li><strong>SQLink</strong></li>
-            <li>Other digital rooms and linked networks</li>
-          </ul>
-        </article>
-      </div>
-    </section>
+  <aside class="frequency-callout" aria-label="Calling me">
+    <p><strong>Calling me:</strong> If my current status is <strong>SCAN</strong>, feel free to call me on any of the repeaters I use. I may be monitoring and ready for a QSO!</p>
+  </aside>
 
-    <section class="qsl-section" aria-label="My QSL card">
-      <div class="qsl-card">
-        <img src="QSL_RS.png" alt="My QSL card" />
-        <p class="qsl-caption">My QSL card.</p>
-      </div>
-    </section>
+  <div class="frequency-sections">
+    <article class="frequency-section">
+      <h3>1. Repeaters I Use</h3>
+      <p><em>Local repeaters and linked networks I regularly use or monitor.</em></p>
+    </article>
+
+    <article class="frequency-section">
+      <h3>2. VHF Direct Frequencies</h3>
+      <p><strong>145.225–145.550 MHz</strong><br><strong>Modes:</strong> FM / C4FM<br><strong>Channel spacing:</strong> 25 kHz</p>
+      <p class="frequency-channel-list">145.225 · 145.250 · 145.275 · 145.300 · 145.325 · 145.350 · 145.375 · 145.400 · 145.425 · 145.450 · 145.475 · 145.500 · 145.525 · 145.550 MHz</p>
+    </article>
+
+    <article class="frequency-section">
+      <h3>3. Digital Networks &amp; Other Systems</h3>
+      <p><em>Occasional activity on:</em></p>
+      <ul>
+        <li><strong>WIRES-X</strong> (C4FM digital rooms)</li>
+        <li><strong>EchoLink</strong></li>
+        <li><strong>SQlink</strong></li>
+        <li>Other digital rooms and linked networks</li>
+      </ul>
+    </article>
+  </div>
+</section>
 
     <footer class="site-footer">
-      <p>SP7KJR • Amateur Radio</p>
-      <p>© <span id="year"></span> • Status dashboard</p>
+
+      <p>SP7KJR · Amateur Radio</p>
+      <p>© <span id="year"></span> · Status dashboard</p>
     </footer>
   </main>
 
   <script>
     "use strict";
 
-    const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_addr5RpIc";
-    const DATA_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:Q";
+    const SHEET_ID = "1O1ScG-qOaguXs9a1Omh4icDcathXGwDEK_adtr5RpIc";
+    const DATA_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&range=A:B";
     const REFRESH_INTERVAL_MS = 60 * 1000;
+    const REQUEST_TIMEOUT_MS = 12 * 1000;
     const MAX_RETRIES = 2;
     const CACHE_KEY = "sp7kjr-radio-status-v2";
-    const STATUS_FIELDS_NAMES = ["status", "status / notice", "stan"];
-    const OPTIONAL_FIELDS_NAMES = ["comment"];
-    const FIELD_ALIASES = {
+    const STATUS_FIELD_NAMES = ["status", "updated", "frequency", "network", "qth"];
+    const OPTIONAL_FIELD_NAMES = ["comment"];
+    const FIELD_NAMES = STATUS_FIELD_NAMES.concat(OPTIONAL_FIELD_NAMES);
+
+    const fieldAliases = {
       status: ["status", "status / notice", "stan"],
       updated: ["updated", "ostatnia aktualizacja", "aktualizacja"],
-      frequency: ["frequency", "częstotliwość", "częstotliwość / przekaźnik", "przekaźnik"],
-      network: ["network", "sieć"],
+      frequency: ["frequency", "czestotliwosc", "czestotliwosc / przemiennik", "przemiennik"],
+      network: ["network", "siec"],
       qth: ["qth", "lokalizacja"],
       comment: ["comment", "komentarz"]
     };
@@ -1282,12 +1216,11 @@
       connection: document.getElementById("connection"),
       frequency: document.getElementById("frequency"),
       network: document.getElementById("network"),
+      connection: document.getElementById("connection"),
       qth: document.getElementById("qth"),
       refreshButton: document.getElementById("refreshButton"),
       status: document.getElementById("statusHeading"),
-      updated: document.getElementById("updated"),
-      noticeCard: document.getElementById("noticeCard"),
-      noticeText: document.getElementById("noticeText")
+      updated: document.getElementById("updated")
     };
 
     let isLoading = false;
@@ -1298,10 +1231,7 @@
         .toLocaleLowerCase("en-US")
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "")
-        .replace(/\s+/g, " ")
-        .replace(/[^a-z0-9 ]/g, "")
-        .replace(/\s+/g, " ")
-        .trim();
+        .replace(/\s+/g, " ");
     }
 
     function safeText(value, fallback, maxLength = 160) {
@@ -1312,7 +1242,7 @@
 
     function getCellValue(cell) {
       if (!cell || typeof cell !== "object") return null;
-      return cell.f ? cell.v ?? null : null;
+      return cell.f ?? cell.v ?? null;
     }
 
     function parseVisualizationResponse(payload) {
@@ -1326,8 +1256,8 @@
         .trim();
 
       if (!json) throw new Error("The sheet returned no data.");
-
       const data = JSON.parse(json);
+
       if (!data.table || !Array.isArray(data.table.rows)) {
         throw new Error("The sheet response does not contain a data table.");
       }
@@ -1340,17 +1270,25 @@
       const values = Object.create(null);
 
       for (const row of data.table.rows) {
-        const key = getCellValue(row.c?.[0]);
-        const value = getCellValue(row.c?.[1]);
-        if (key == null || value == null) continue;
+        const key = getCellValue(row?.c?.[0]);
+        const value = getCellValue(row?.c?.[1]);
+        if (key === null || key === undefined || value === null || value === undefined) continue;
         values[normaliseKey(key)] = value;
       }
 
       const result = Object.create(null);
-      for (const field of ["status", "updated", "frequency", "network", "qth", "comment"]) {
-        const aliases = FIELD_ALIASES[field] || [field];
-        const sourceKey = aliases.find(alias => Object.prototype.hasOwnProperty.call(values, normaliseKey(alias)));
-        result[field] = sourceKey ? safeText(values[normaliseKey(sourceKey)], "", 1000) : "";
+      for (const field of STATUS_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "—");
+      }
+
+      for (const field of OPTIONAL_FIELD_NAMES) {
+        const sourceKey = fieldAliases[field].find(function (alias) {
+          return Object.prototype.hasOwnProperty.call(values, alias);
+        });
+        result[field] = safeText(sourceKey ? values[sourceKey] : null, "", 900);
       }
 
       return result;
@@ -1358,7 +1296,9 @@
 
     async function fetchWithTimeout(url) {
       const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 15000);
+      const timeout = window.setTimeout(function () {
+        controller.abort();
+      }, REQUEST_TIMEOUT_MS);
 
       try {
         const response = await fetch(url, {
@@ -1368,27 +1308,35 @@
         });
 
         if (!response.ok) {
-          throw new Error(`Server returned HTTP status ${response.status}.`);
+          throw new Error("Server returned HTTP status " + response.status + ".");
         }
 
         return await response.text();
+      } catch (error) {
+        if (error.name === "AbortError") {
+          throw new Error("Request timed out.");
+        }
+        throw error;
       } finally {
         window.clearTimeout(timeout);
       }
     }
 
     function delay(milliseconds) {
-      return new Promise(resolve => window.setTimeout(resolve, milliseconds));
+      return new Promise(function (resolve) {
+        window.setTimeout(resolve, milliseconds);
+      });
     }
 
     async function loadFromSheet() {
       let lastError;
 
-      for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+      for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
         try {
           const timestamp = Date.now();
-          const dataPayload = await fetchWithTimeout(DATA_URL + `&cache=${timestamp}`);
+          const dataPayload = await fetchWithTimeout(DATA_URL + "&cache=" + timestamp);
           const dataValues = parseSheetResponse(dataPayload);
+          
           return dataValues;
         } catch (error) {
           lastError = error;
@@ -1401,86 +1349,146 @@
 
     function setConnection(message, type) {
       ui.connection.textContent = message;
-      ui.connection.className = "connection" + (type ? ` is-${type}` : "");
+      ui.connection.className = "connection" + (type ? " is-" + type : "");
     }
 
     function updateTheme(status) {
       const body = document.body;
+      const normalizedStatus = normaliseKey(status);
+
+      // Remove all theme classes
       body.classList.remove("theme-offline", "theme-qrl", "theme-onair", "theme-mobile", "theme-alert");
 
-      const normalized = String(status || "").trim().toLowerCase();
-      if (normalized.includes("offline") || normalized.includes("off") || normalized.includes("qrl")) {
+      // Add appropriate theme based on status
+      if (normalizedStatus.includes("offline")) {
         body.classList.add("theme-offline");
-      } else if (normalized.includes("qrl") || normalized.includes("dnd")) {
+      } else if (normalizedStatus.includes("qrl") || normalizedStatus.includes("dnd")) {
         body.classList.add("theme-qrl");
-      } else if (normalized.includes("scan") || normalized.includes("on air") || normalized.includes("onair")) {
+      } else if (normalizedStatus.includes("scan") || normalizedStatus.includes("qsx")) {
         body.classList.add("theme-onair");
-      } else if (normalized.includes("mobile") || normalized.includes("portable")) {
+      } else if (normalizedStatus.includes("mobil") || normalizedStatus.includes("portable")) {
         body.classList.add("theme-mobile");
-      } else if (normalized.includes("alert") || normalized.includes("emergency") || normalized.includes("alarm")) {
+      } else if (normalizedStatus.includes("qaz") || normalizedStatus.includes("alert")) {
         body.classList.add("theme-alert");
       }
     }
 
-    function applyData(data) {
-      const status = safeText(data.status, "Loading data…", 120);
-      const updated = safeText(data.updated, "—", 160);
-      const frequency = safeText(data.frequency, "—", 200);
-      const network = safeText(data.network, "—", 120);
-      const qth = safeText(data.qth, "—", 120);
-      const comment = safeText(data.comment, "", 600);
-
-      ui.status.textContent = status || "Loading data…";
-      ui.updated.textContent = updated;
-      ui.frequency.textContent = frequency;
-      ui.network.textContent = network;
-      ui.qth.textContent = qth;
-
-      if (comment) {
-        ui.comment.textContent = comment;
-        ui.commentCard.hidden = false;
-      } else {
-        ui.commentCard.hidden = true;
+    function applyValues(values) {
+      for (const field of STATUS_FIELD_NAMES) {
+        ui[field].textContent = safeText(values[field], "—");
       }
 
-      updateTheme(status);
-      setConnection("Connected to the status sheet", "success");
-      ui.noticeCard.hidden = true;
+      const comment = safeText(values.comment, "", 900);
+      ui.comment.textContent = comment;
+      ui.commentCard.hidden = !comment;
+
+      // Update theme based on status
+      updateTheme(values.status);
     }
 
-    async function refreshData() {
-      if (isLoading) return;
-      isLoading = true;
-      ui.refreshButton.disabled = true;
-      setConnection("Refreshing data…", "warning");
-
+    function saveCache(values) {
       try {
-        const data = await loadFromSheet();
-        applyData(data);
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          savedAt: Date.now(),
+          values: values,
+          version: 1
+        }));
       } catch (error) {
-        console.error(error);
-        setConnection("Unable to refresh status data", "error");
-        ui.noticeText.textContent = "The station status could not be refreshed. Please try again in a moment.";
-        ui.noticeCard.hidden = false;
-      } finally {
-        ui.refreshButton.disabled = false;
-        isLoading = false;
+        console.warn("Unable to save the local status cache.", error);
       }
+    }
+
+    function readCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY));
+        if (!cached || cached.version !== 1 || !cached.values || !Number.isFinite(cached.savedAt)) return null;
+
+        const values = Object.create(null);
+        for (const field of STATUS_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "—", 160);
+        }
+        for (const field of OPTIONAL_FIELD_NAMES) {
+          values[field] = safeText(cached.values[field], "", 900);
+        }
+        return { savedAt: cached.savedAt, values: values };
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function formatLocalTime(timestamp) {
+      return new Intl.DateTimeFormat("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(timestamp);
     }
 
     function updateClock() {
-      const now = new Date();
-      const time = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-      ui.clock.textContent = time;
+      ui.clock.textContent = new Intl.DateTimeFormat("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      }).format(new Date());
     }
 
-    document.getElementById("year").textContent = new Date().getFullYear();
-    updateClock();
-    setInterval(updateClock, 1000);
-    ui.refreshButton.addEventListener("click", refreshData);
+    function renderUnavailable() {
+      applyValues({
+        status: "No connection to data",
+        updated: "—",
+        frequency: "—",
+        network: "—",
+        qth: "—",
+        comment: ""
+      });
+      setConnection("Unable to load data. Please try again later.", "error");
+    }
 
-    refreshData();
-    window.setInterval(refreshData, REFRESH_INTERVAL_MS);
+    async function refreshStatus() {
+      if (isLoading) return;
+
+      isLoading = true;
+      ui.refreshButton.disabled = true;
+      ui.refreshButton.textContent = "Refreshing…";
+      setConnection("Refreshing data from the sheet…", "warning");
+
+      try {
+        const values = await loadFromSheet();
+        applyValues(values);
+        saveCache(values);
+        setConnection("Connected to the sheet · synced " + formatLocalTime(Date.now()), "success");
+      } catch (error) {
+        console.error("SP7KJR status error:", error);
+        const cached = readCache();
+
+        if (cached) {
+          applyValues(cached.values);
+          setConnection("Displaying most recently saved data · " + formatLocalTime(cached.savedAt), "warning");
+        } else {
+          renderUnavailable();
+        }
+      } finally {
+        isLoading = false;
+        ui.refreshButton.disabled = false;
+        ui.refreshButton.textContent = "Refresh now";
+      }
+    }
+
+    document.getElementById("year").textContent = String(new Date().getFullYear());
+    ui.refreshButton.addEventListener("click", refreshStatus);
+
+    const cached = readCache();
+    if (cached) {
+      applyValues(cached.values);
+      setConnection("Showing saved data · refreshing…", "warning");
+    }
+
+    updateClock();
+    window.setInterval(updateClock, 1000);
+    refreshStatus();
+    window.setInterval(refreshStatus, REFRESH_INTERVAL_MS);
   </script>
 </body>
 </html>
