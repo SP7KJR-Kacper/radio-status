@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; frame-src https://logbook.qrz.com;">  <title>SP7KJR · Radio Status</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src https://docs.google.com; frame-src https://logbook.qrz.com https://www.google.com;">  <title>SP7KJR · Radio Status</title>
   <style>
       .logbook {
     width: 100%;
@@ -35,6 +35,108 @@
     width: 100%;
     height: 100%;
     border: 0;
+  }
+
+  .radio-map {
+    width: 100%;
+    max-width: 1100px;
+    margin: 40px auto 0;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  .radio-map h2 {
+    margin: 0 0 6px;
+  }
+
+  .radio-map-description {
+    margin: 0 0 16px;
+    opacity: .75;
+  }
+
+  .radio-map-frame {
+    width: 100%;
+    height: clamp(460px, 70vw, 650px);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--panel-strong);
+  }
+
+  .radio-map-frame iframe {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .frequencies {
+    width: 100%;
+    max-width: 1100px;
+    margin: 40px auto 0;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  .frequencies h2,
+  .frequency-section h3 {
+    margin: 0;
+  }
+
+  .frequency-intro {
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .frequency-callout {
+    margin-top: 18px;
+    padding: 17px 19px;
+    border: 1px solid var(--theme-primary);
+    border-left-width: 4px;
+    border-radius: 14px;
+    background: var(--theme-primary-soft);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  .frequency-callout p { margin: 0; }
+
+  .frequency-sections {
+    display: grid;
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .frequency-section {
+    padding: clamp(18px, 4vw, 24px);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--panel);
+  }
+
+  .frequency-section h3 {
+    color: var(--text);
+    font-size: clamp(18px, 3vw, 22px);
+  }
+
+  .frequency-section p,
+  .frequency-section ul {
+    margin: 10px 0 0;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .frequency-section strong { color: var(--text); }
+
+  .frequency-channel-list {
+    max-width: 72ch;
+    color: #bdcad7 !important;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .frequency-section ul {
+    padding-left: 1.25em;
   }
     :root {
       --bg: #070b12;
@@ -916,6 +1018,9 @@
       .abbreviations { grid-template-columns: 1fr; }
       .site-footer { display: block; }
       .site-footer p + p { margin-top: 5px; }
+      .radio-map { padding: 0; }
+      .radio-map-frame { height: 470px; border-radius: 12px; }
+      .frequencies { padding: 0; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1027,7 +1132,55 @@
       frameborder="0">
     </iframe>
   </div>
-</section>    <footer class="site-footer">
+</section>
+
+<section class="radio-map" aria-labelledby="radioMapHeading">
+  <h2 id="radioMapHeading">Mapa przemienników analogowych</h2>
+  <p class="radio-map-description">Interaktywna mapa krótkofalarska SP7KJR.</p>
+
+  <div class="radio-map-frame">
+    <iframe
+      src="https://www.google.com/maps/d/embed?mid=1zc6GYvF--QVaJyPT98SfChA6TpM4Wbs"
+      title="Mapa przemienników analogowych SP7KJR"
+      loading="lazy"
+      allowfullscreen>
+    </iframe>
+  </div>
+</section>
+
+<section class="frequencies" aria-labelledby="frequenciesHeading">
+  <h2 id="frequenciesHeading">📡 Frequencies &amp; Networks I Monitor</h2>
+
+  <aside class="frequency-callout" aria-label="Calling me">
+    <p><strong>Calling me:</strong> If my current status is <strong>SCAN</strong>, feel free to call me on any of the repeaters I use. I may be monitoring and ready for a QSO!</p>
+  </aside>
+
+  <div class="frequency-sections">
+    <article class="frequency-section">
+      <h3>1. Repeaters I Use</h3>
+      <p><em>Local repeaters and linked networks I regularly use or monitor.</em></p>
+    </article>
+
+    <article class="frequency-section">
+      <h3>2. VHF Direct Frequencies</h3>
+      <p><strong>145.225–145.550 MHz</strong><br><strong>Modes:</strong> FM / C4FM<br><strong>Channel spacing:</strong> 25 kHz</p>
+      <p class="frequency-channel-list">145.225 · 145.250 · 145.275 · 145.300 · 145.325 · 145.350 · 145.375 · 145.400 · 145.425 · 145.450 · 145.475 · 145.500 · 145.525 · 145.550 MHz</p>
+    </article>
+
+    <article class="frequency-section">
+      <h3>3. Digital Networks &amp; Other Systems</h3>
+      <p><em>Occasional activity on:</em></p>
+      <ul>
+        <li><strong>WIRES-X</strong> (C4FM digital rooms)</li>
+        <li><strong>EchoLink</strong></li>
+        <li><strong>SQlink</strong></li>
+        <li>Other digital rooms and linked networks</li>
+      </ul>
+    </article>
+  </div>
+</section>
+
+    <footer class="site-footer">
 
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
