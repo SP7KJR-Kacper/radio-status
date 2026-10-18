@@ -1092,6 +1092,45 @@
       <p class="comment-label" id="commentLabel">Comment</p>
       <p class="comment-value" id="commentText"></p>
     </aside>
+<!-- Paste this entire block where you want the form to appear. -->
+<style>
+  .rs-trace {
+    --rs-text: var(--radio-status-text, var(--text-color, currentColor));
+    --rs-muted: var(--radio-status-muted, var(--muted-color, var(--rs-text)));
+    --rs-accent: var(--radio-status-accent, var(--accent-color, var(--rs-text)));
+    --rs-accent-contrast: var(--radio-status-accent-contrast, var(--background-color, Canvas));
+    --rs-line: var(--radio-status-line, color-mix(in srgb, var(--rs-text) 28%, transparent));
+    --rs-input: var(--radio-status-input, transparent);
+    max-width: 680px; margin: 2.5rem auto; padding: 1.4rem 0; color: var(--rs-text);
+    border-top: 1px solid var(--rs-line); border-bottom: 1px solid var(--rs-line);
+  }
+  .rs-trace__signal { display: flex; align-items: center; gap: .45rem; margin: 0 0 .55rem; color: var(--rs-accent); font: 800 .72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .16em; }
+  .rs-trace__dot { width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; box-shadow: 0 0 .8rem currentColor; }
+  .rs-trace__title { margin: 0; font: 800 clamp(1.35rem, 3vw, 1.9rem)/1.1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .04em; }
+  .rs-trace__copy { margin: .55rem 0 1rem; color: var(--rs-muted); font-size: .94rem; }
+  .rs-trace__form { display: flex; gap: .55rem; }
+  .rs-trace__input, .rs-trace__button { min-height: 2.9rem; border-radius: 0; font: inherit; }
+  .rs-trace__input { min-width: 0; flex: 1; padding: 0 .8rem; color: inherit; background: var(--rs-input); border: 1px solid var(--rs-line); border-bottom-color: var(--rs-accent); }
+  .rs-trace__input::placeholder { color: var(--rs-muted); opacity: .8; }
+  .rs-trace__input:focus { outline: 2px solid var(--rs-accent); outline-offset: 2px; }
+  .rs-trace__button { padding: 0 1.05rem; color: var(--rs-accent-contrast); background: var(--rs-accent); border: 1px solid var(--rs-accent); font: 900 .78rem/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; cursor: pointer; }
+  .rs-trace__button:hover, .rs-trace__button:focus-visible { color: var(--rs-accent); background: transparent; outline: none; }
+  .rs-trace__note { margin: .65rem 0 0; color: var(--rs-muted); font: .72rem/1.35 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .07em; }
+  .rs-trace__honeypot { position: absolute; left: -10000px; }
+  @media (max-width: 480px) { .rs-trace { margin-inline: 1.1rem; } .rs-trace__form { flex-direction: column; } }
+</style>
+
+<section class="rs-trace" aria-labelledby="rs-trace-title">
+  <p class="rs-trace__signal"><span class="rs-trace__dot" aria-hidden="true"></span>OPEN CHANNEL</p>
+  <h2 class="rs-trace__title" id="rs-trace-title">LEAVE YOUR TRACE</h2>
+  <p class="rs-trace__copy">Callsign, signal report, or a short message. Sent privately to the station operator.</p>
+  <form class="rs-trace__form" action="https://formspree.io/f/mbgdbplg" method="POST">
+    <input class="rs-trace__input" id="radio-status-trace" name="Callsign_or_message" type="text" maxlength="100" required autocomplete="off" placeholder="e.g. SP7ABC — loud and clear" aria-label="Callsign or short message" />
+    <input class="rs-trace__honeypot" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true" />
+    <button class="rs-trace__button" type="submit">TRANSMIT →</button>
+  </form>
+  <p class="rs-trace__note">MAX 100 CHARACTERS · NOT PUBLICLY DISPLAYED</p>
+</section>
 
     <section class="contact-card" aria-labelledby="contactHeading">
       <h2 class="contact-heading" id="contactHeading">Contact</h2>
