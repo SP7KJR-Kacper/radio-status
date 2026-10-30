@@ -1204,9 +1204,29 @@
   </div>
 </section>
 
+<a href="./historia/" class="history-button">
+  <span class="history-icon">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"
+        stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M3 3v5h5M12 7v5l3 2"
+        stroke="currentColor" stroke-width="1.8"
+        stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>
+
+  <span class="history-content">
+    <strong>Historia statusów</strong>
+    <small>Przeglądaj archiwum aktywności stacji</small>
+  </span>
+
+  <span class="history-arrow">↗</span>
+</a>
+
 <section class="radio-map" aria-labelledby="radioMapHeading">
-  <h2 id="radioMapHeading">Mapa przemienników analogowych</h2>
-  <p class="radio-map-description">Interaktywna mapa krótkofalarska SP7KJR.</p>
+  <h2 id="radioMapHeading">My repeaters map</h2>
+  <p class="radio-map-description">SP7KJR</p>
 
   <div class="radio-map-frame">
     <iframe
@@ -1334,6 +1354,99 @@
 </div>
 
 <style>
+  
+.history-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 280px;
+  padding: 14px 18px;
+  border-radius: 15px;
+
+  color: #eafaff;
+  text-decoration: none;
+
+  background:
+    linear-gradient(135deg,
+      rgba(29, 65, 85, .92),
+      rgba(10, 25, 42, .96));
+
+  border: 1px solid rgba(54, 201, 194, .28);
+
+  box-shadow:
+    0 8px 25px rgba(0, 0, 0, .22),
+    inset 0 1px 0 rgba(255, 255, 255, .06);
+
+  transition:
+    transform .25s ease,
+    border-color .25s ease,
+    box-shadow .25s ease,
+    background .25s ease;
+}
+
+.history-button:hover {
+  transform: translateY(-3px);
+
+  border-color: rgba(54, 201, 194, .75);
+
+  background:
+    linear-gradient(135deg,
+      rgba(34, 91, 111, .98),
+      rgba(12, 34, 54, .98));
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, .3),
+    0 0 20px rgba(54, 201, 194, .10);
+}
+
+.history-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: #47d6ce;
+
+  background: rgba(54, 201, 194, .12);
+  border: 1px solid rgba(54, 201, 194, .2);
+  border-radius: 12px;
+}
+
+.history-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.history-content {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.history-content strong {
+  font-size: 14px;
+  font-weight: 750;
+  letter-spacing: .2px;
+}
+
+.history-content small {
+  color: #91aabd;
+  font-size: 11px;
+}
+
+.history-arrow {
+  margin-left: auto;
+  color: #47d6ce;
+  font-size: 20px;
+  transition: transform .25s ease;
+}
+
+.history-button:hover .history-arrow {
+  transform: translate(3px, -3px);
+}
+
   .radio-toy {
     text-align: center;
     margin: 25px auto;
@@ -1427,7 +1540,7 @@
   }
 </style>
     <footer class="site-footer">
-<a href="./historia/">Historia statusów</a>
+
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
     </footer>
