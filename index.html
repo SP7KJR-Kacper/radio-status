@@ -1204,25 +1204,27 @@
   </div>
 </section>
 
-<a href="./historia/" class="history-button">
-  <span class="history-icon">
-    <svg viewBox="0 0 24 24" fill="none">
-      <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="M3 3v5h5M12 7v5l3 2"
-        stroke="currentColor" stroke-width="1.8"
-        stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </span>
+<div class="history-button-wrap">
+  <a href="./historia/" class="history-button">
+    <span class="history-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M3 12a9 9 0 1 0 2.64-6.36L3 8"
+          stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M3 3v5h5M12 7v5l3 2"
+          stroke="currentColor" stroke-width="1.8"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
 
-  <span class="history-content">
-    <strong>Status history</strong>
-    <small>Browse the station activity archive</small>
-  </span>
+    <span class="history-content">
+      <strong>Status history</strong>
+      <small>Browse the station activity archive</small>
+    </span>
 
-  <span class="history-arrow">↗</span>
-</a>
+    <span class="history-arrow" aria-hidden="true">↗</span>
+  </a>
+</div>
 
 <section class="radio-map" aria-labelledby="radioMapHeading">
   <h2 id="radioMapHeading">My repeaters map</h2>
@@ -1354,64 +1356,72 @@
 </div>
 
 <style>
-  
+.history-button-wrap {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin: 34px auto;
+  padding: 0 16px;
+}
+
 .history-button {
   display: inline-flex;
   align-items: center;
   gap: 14px;
-  min-width: 280px;
+  width: min(100%, 360px);
   padding: 14px 18px;
   border-radius: 15px;
-
-  color: #eafaff;
+  color: var(--text);
   text-decoration: none;
-
   background:
     linear-gradient(135deg,
-      rgba(29, 65, 85, .92),
-      rgba(10, 25, 42, .96));
-
-  border: 1px solid rgba(54, 201, 194, .28);
-
+      color-mix(in srgb, var(--theme-accent-1) 76%, var(--panel-strong)),
+      color-mix(in srgb, var(--theme-accent-2) 68%, var(--bg)));
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 38%, transparent);
   box-shadow:
     0 8px 25px rgba(0, 0, 0, .22),
-    inset 0 1px 0 rgba(255, 255, 255, .06);
-
+    inset 0 1px 0 rgba(255, 255, 255, .06),
+    0 0 24px color-mix(in srgb, var(--theme-primary) 8%, transparent);
   transition:
     transform .25s ease,
     border-color .25s ease,
     box-shadow .25s ease,
-    background .25s ease;
+    background .25s ease,
+    color .25s ease;
 }
 
 .history-button:hover {
   transform: translateY(-3px);
-
-  border-color: rgba(54, 201, 194, .75);
-
+  border-color: var(--theme-primary);
   background:
     linear-gradient(135deg,
-      rgba(34, 91, 111, .98),
-      rgba(12, 34, 54, .98));
-
+      color-mix(in srgb, var(--theme-accent-1) 88%, var(--panel-strong)),
+      color-mix(in srgb, var(--theme-accent-2) 82%, var(--bg)));
   box-shadow:
     0 12px 32px rgba(0, 0, 0, .3),
-    0 0 20px rgba(54, 201, 194, .10);
+    0 0 24px color-mix(in srgb, var(--theme-primary) 18%, transparent);
+}
+
+.history-button:active {
+  transform: translateY(-1px);
+}
+
+.history-button:focus-visible {
+  outline: 3px solid var(--theme-primary);
+  outline-offset: 4px;
 }
 
 .history-icon {
   width: 42px;
   height: 42px;
   flex-shrink: 0;
-
   display: grid;
   place-items: center;
-
-  color: #47d6ce;
-
-  background: rgba(54, 201, 194, .12);
-  border: 1px solid rgba(54, 201, 194, .2);
+  color: var(--theme-primary);
+  background: var(--theme-primary-soft);
+  border: 1px solid color-mix(in srgb, var(--theme-primary) 28%, transparent);
   border-radius: 12px;
+  transition: color .25s ease, background .25s ease, border-color .25s ease;
 }
 
 .history-icon svg {
@@ -1423,6 +1433,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  min-width: 0;
 }
 
 .history-content strong {
@@ -1432,15 +1443,15 @@
 }
 
 .history-content small {
-  color: #91aabd;
+  color: var(--muted);
   font-size: 11px;
 }
 
 .history-arrow {
   margin-left: auto;
-  color: #47d6ce;
+  color: var(--theme-primary);
   font-size: 20px;
-  transition: transform .25s ease;
+  transition: color .25s ease, transform .25s ease;
 }
 
 .history-button:hover .history-arrow {
