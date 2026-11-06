@@ -501,6 +501,13 @@
       overflow-wrap: anywhere;
     }
 
+    .card-age {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+
     .status-panel {
       position: relative;
       overflow: hidden;
@@ -1099,6 +1106,7 @@
       <article class="data-card">
         <p class="card-label"><span class="card-icon" aria-hidden="true">◷</span>Last updated</p>
         <p class="card-value" id="updated">—</p>
+        <p class="card-age" id="updatedAge">Time ago unavailable</p>
       </article>
 
       <article class="data-card">
@@ -1631,10 +1639,12 @@
       qth: document.getElementById("qth"),
       refreshButton: document.getElementById("refreshButton"),
       status: document.getElementById("statusHeading"),
-      updated: document.getElementById("updated")
+      updated: document.getElementById("updated"),
+      updatedAge: document.getElementById("updatedAge")
     };
 
     let isLoading = false;
+    let lastUpdatedAt = null;
 
     function normaliseKey(value) {
       return String(value ?? "")
@@ -1789,12 +1799,83 @@
         ui[field].textContent = safeText(values[field], "—");
       }
 
+      lastUpdatedAt = parseUpdatedTimestamp(values.updated);
+      updateUpdatedAge();
+
       const comment = safeText(values.comment, "", 900);
       ui.comment.textContent = comment;
       ui.commentCard.hidden = !comment;
 
       // Update theme based on status
       updateTheme(values.status);
+    }
+
+    function parseUpdatedTimestamp(value) {
+      const text = safeText(value, "");
+      if (!text || text === "—") return null;
+
+      const googleDate = text.match(/^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})(?:,\s*(\d{1,2}),\s*(\d{1,2}),\s*(\d{1,2}))?\)$/);
+      if (googleDate) {
+        const timestamp = new Date(
+          Number(googleDate[1]),
+          Number(googleDate[2]),
+          Number(googleDate[3]),
+          Number(googleDate[4] || 0),
+          Number(googleDate[5] || 0),
+          Number(googleDate[6] || 0)
+        );
+        return Number.isNaN(timestamp.getTime()) ? null : timestamp.getTime();
+      }
+
+      const dayFirst = text.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?)?$/i);
+      if (dayFirst) {
+        const day = Number(dayFirst[1]);
+        const month = Number(dayFirst[2]) - 1;
+        const year = Number(dayFirst[3]);
+        let hour = Number(dayFirst[4] || 0);
+        const minute = Number(dayFirst[5] || 0);
+        const second = Number(dayFirst[6] || 0);
+        const meridiem = (dayFirst[7] || "").toLowerCase();
+
+        if (meridiem) {
+          if (hour < 1 || hour > 12) return null;
+          hour = hour % 12 + (meridiem === "pm" ? 12 : 0);
+        }
+
+        const timestamp = new Date(year, month, day, hour, minute, second);
+        if (timestamp.getFullYear() !== year || timestamp.getMonth() !== month ||
+            timestamp.getDate() !== day || timestamp.getHours() !== hour ||
+            timestamp.getMinutes() !== minute || timestamp.getSeconds() !== second) {
+          return null;
+        }
+        return timestamp.getTime();
+      }
+
+      const timestamp = Date.parse(text);
+      return Number.isFinite(timestamp) ? timestamp : null;
+    }
+
+    function updateUpdatedAge() {
+      if (lastUpdatedAt === null) {
+        ui.updatedAge.textContent = "Time ago unavailable";
+        return;
+      }
+
+      const elapsedSeconds = Math.max(0, Math.floor((Date.now() - lastUpdatedAt) / 1000));
+      if (elapsedSeconds < 10) {
+        ui.updatedAge.textContent = "Set just now";
+      } else if (elapsedSeconds < 60) {
+        ui.updatedAge.textContent = "Set " + elapsedSeconds + " seconds ago";
+      } else if (elapsedSeconds < 3600) {
+        const minutes = Math.floor(elapsedSeconds / 60);
+        ui.updatedAge.textContent = "Set " + minutes + (minutes === 1 ? " minute ago" : " minutes ago");
+      } else if (elapsedSeconds < 86400) {
+        const hours = Math.floor(elapsedSeconds / 3600);
+        ui.updatedAge.textContent = "Set " + hours + (hours === 1 ? " hour ago" : " hours ago");
+      } else {
+        const days = Math.floor(elapsedSeconds / 86400);
+        ui.updatedAge.textContent = "Set " + days + (days === 1 ? " day ago" : " days ago");
+      }
     }
 
     function saveCache(values) {
@@ -1898,6 +1979,7 @@
 
     updateClock();
     window.setInterval(updateClock, 1000);
+    window.setInterval(updateUpdatedAge, 1000);
     refreshStatus();
     window.setInterval(refreshStatus, REFRESH_INTERVAL_MS);
   </script>
