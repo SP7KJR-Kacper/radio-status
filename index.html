@@ -1004,6 +1004,41 @@
 
     .site-footer p { margin: 0; }
 
+    .radio-game-links {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 24px auto 0;
+    }
+
+    .radio-game-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0 20px;
+      border: 1px solid var(--theme-primary);
+      border-radius: 11px;
+      color: var(--text);
+      background: var(--theme-primary-soft);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .06em;
+      text-decoration: none;
+      transition: transform .18s ease, background .18s ease;
+    }
+
+    .radio-game-link:hover {
+      background: color-mix(in srgb, var(--theme-primary) 24%, transparent);
+      transform: translateY(-2px);
+    }
+
+    .radio-game-link:focus-visible {
+      outline: 3px solid var(--theme-primary);
+      outline-offset: 3px;
+    }
+
     @media (max-width: 560px) {
       .shell { width: min(100% - 24px, 920px); padding-top: 24px; }
       .site-header { align-items: flex-start; }
@@ -1018,6 +1053,8 @@
       .abbreviations { grid-template-columns: 1fr; }
       .site-footer { display: block; }
       .site-footer p + p { margin-top: 5px; }
+      .radio-game-links { flex-direction: column; }
+      .radio-game-link { width: 100%; box-sizing: border-box; }
       .radio-map { padding: 0; }
       .radio-map-frame { height: 470px; border-radius: 12px; }
       .frequencies { padding: 0; }
@@ -1555,6 +1592,10 @@
       <p>SP7KJR · Amateur Radio</p>
       <p>© <span id="year"></span> · Status dashboard</p>
     </footer>
+    <nav class="radio-game-links" aria-label="Radio games">
+      <a class="radio-game-link" href="https://sp7kjr-kacper.github.io/radio-status/humor/">RADIO-MELTDOWN</a>
+      <a class="radio-game-link" href="https://sp7kjr-kacper.github.io/radio-status/radiolamacz/">RADIO-WORDBREAKER</a>
+    </nav>
   </main>
 
   <script>
