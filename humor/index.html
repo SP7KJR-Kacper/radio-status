@@ -1,0 +1,315 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SP7KJR | RADIOAWARIA</title>
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:20px 12px;background:#101827;
+ color:#edf3fa;font-family:Arial,sans-serif
+}
+main{max-width:650px;margin:auto}
+header{text-align:center;margin-bottom:22px}
+h1{color:#ffb64c;letter-spacing:2px}
+.panel{
+ background:#1b293d;border:1px solid #394c64;
+ border-radius:14px;padding:18px;margin-bottom:15px
+}
+.stats{display:flex;justify-content:space-around;text-align:center}
+.stats strong{display:block;font-size:25px;color:#ffb64c}
+small,.muted{color:#9aacc1}
+#event{font-size:20px;font-weight:bold;line-height:1.5;margin:18px 0}
+.option{
+ width:100%;display:block;text-align:left;
+ background:#2b405a;color:white;border:1px solid #48617d;
+ border-radius:9px;padding:14px;margin:9px 0;
+ cursor:pointer;font-size:14px;line-height:1.4
+}
+.option:hover{background:#3a5878}
+.option:disabled{cursor:default;opacity:.8}
+.option.good{background:#176e51;border-color:#35b98a}
+.option.bad{background:#913d3d;border-color:#db6969}
+button{
+ border:0;border-radius:8px;padding:12px 17px;
+ background:#168ac4;color:white;font-weight:bold;cursor:pointer
+}
+button:disabled{opacity:.5}
+#result{line-height:1.6;min-height:45px;color:#ffd27b;margin-top:14px}
+#rank{color:#58c8f6;font-weight:bold}
+footer{text-align:center;color:#71869f;font-size:12px;margin-top:25px}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>🚨 RADIOAWARIA</h1>
+<p>Centrum Kryzysowe Krótkofalowca</p>
+<p class="muted">SP7KJR | Wydział Łączności i Dziwnych Przypadków</p>
+</header>
+
+<div class="panel stats">
+ <div><strong id="score">0</strong><small>Punkty</small></div>
+ <div><strong id="number">0</strong><small>Interwencje</small></div>
+ <div><strong id="rank">Stażysta</strong><small>Stopień</small></div>
+</div>
+
+<div class="panel">
+ <div class="muted" id="category">ZGŁOSZENIE NR 001</div>
+ <div id="event">Ładowanie zgłoszenia...</div>
+ <div id="options"></div>
+ <div id="result"></div>
+ <button id="next" onclick="nextEvent()" disabled>
+ Następna interwencja →
+ </button>
+</div>
+
+<div class="panel">
+<h3>📋 Karta dyżuru</h3>
+<p id="report" class="muted">Centrum oczekuje na pierwsze zgłoszenie.</p>
+<button onclick="restart()">Rozpocznij nowy dyżur</button>
+</div>
+
+<footer>
+SP7KJR RADIOAWARIA v1.0<br>
+73! Zachowaj spokój. Nawet jeśli przemiennik nie zachowuje.
+</footer>
+</main>
+
+<script>
+const events=[
+{
+c:"ANTENY",
+q:"🚨 Operator zgłasza, że jego antena nie działa. Po 20 minutach okazuje się, że kabel koncentryczny leży obok radiotelefonu. Co robisz?",
+a:[
+["Wysyłasz ekipę poszukiwawczą kabla.",0],
+["Informujesz operatora, że kabel nie jest elementem dekoracyjnym.",10],
+["Zwiększasz moc do 100 W.",-5]
+],
+e:"Antena musi być połączona z radiotelefonem odpowiednim torem antenowym. Więcej mocy nie naprawi odłączonego kabla."
+},
+{
+c:"PROCEDURY",
+q:"🚨 Kolega rozpoczyna łączność słowami: „Halo, halo, czy ktoś mnie słyszy, tu ja, no ten...”. Co robisz?",
+a:[
+["Proponujesz spokojne, prawidłowe wywołanie z podaniem znaku.",10],
+["Odpowiadasz: „Nie, rozmawiasz z lodówką”.",0],
+["Wysyłasz wezwanie pomocy technicznej.",-2]
+],
+e:"Wywołanie powinno być jasne i zawierać znak wywoławczy stacji."
+},
+{
+c:"PRZEMIENNIKI",
+q:"🚨 Przemiennik odpowiada sam sobie. Operator twierdzi, że urządzenie rozwinęło własną osobowość.",
+a:[
+["Ogłaszasz narodziny nowej stacji.",-2],
+["Sprawdzasz konfigurację, echo, tor audio i warunki pracy.",10],
+["Nadajesz do niego pytanie o jego dzieciństwo.",0]
+],
+e:"Warto sprawdzić funkcję echa, konfigurację przemiennika oraz ewentualne sprzężenie audio."
+},
+{
+c:"RAPORTY",
+q:"🚨 Operator podaje raport 59, ale twierdzi, że słyszy wyłącznie trzaski i pojedyncze sylaby.",
+a:[
+["Przyjmujesz raport, bo 59 brzmi profesjonalnie.",-5],
+["Proponujesz rzetelną ocenę czytelności i siły sygnału.",10],
+["Wystawiasz sygnałowi ocenę niedostateczną.",0]
+],
+e:"Raport RS/RST powinien odpowiadać rzeczywistemu odbiorowi, a nie być automatycznym 59."
+},
+{
+c:"ZASILANIE",
+q:"🚨 Zasilacz 13,8 V wydaje dziwne dźwięki, a napięcie gwałtownie spada przy nadawaniu.",
+a:[
+["Zwiększasz moc nadajnika.",-10],
+["Przerywasz nadawanie i sprawdzasz zasilacz, przewody oraz pobór prądu.",10],
+["Pytasz zasilacz, czy potrzebuje urlopu.",0]
+],
+e:"Spadki napięcia mogą wynikać z przeciążenia, zbyt cienkich przewodów lub uszkodzenia zasilacza."
+},
+{
+c:"Q-CODE",
+q:"🚨 Operator pyta, co oznacza QTH. Znajdujesz go na własnym balkonie.",
+a:[
+["Podajesz mu jego lokalizację.",10],
+["Odpowiadasz QRM.",-3],
+["Zamawiasz GPS.",0]
+],
+e:"QTH oznacza lokalizację stacji. Można podać adres, miejscowość lub lokator."
+},
+{
+c:"SPRZĘT",
+q:"🚨 Ktoś zgłasza awarię radiotelefonu. Urządzenie jest wyłączone, a operator oczekuje odbioru.",
+a:[
+["Włączasz urządzenie i sprawdzasz zasilanie.",10],
+["Zamawiasz nowy transceiver.",-5],
+["Zgłaszasz incydent do komisji śledczej.",0]
+],
+e:"Najpierw sprawdzamy podstawy: zasilanie, włącznik, antenę i ustawienia."
+},
+{
+c:"ŁĄCZNOŚĆ",
+q:"🚨 Na częstotliwości trwa rozmowa. Operator wchodzi w środek bez nasłuchu i zaczyna własną opowieść.",
+a:[
+["Przypominasz o nasłuchu i kulturze operatorskiej.",10],
+["Zwiększasz głośność.",-2],
+["Przyznajesz mu medal za szybkość.",-5]
+],
+e:"Przed rozpoczęciem nadawania należy upewnić się, że częstotliwość jest wolna."
+},
+{
+c:"PROPAGACJA",
+q:"🚨 Operator twierdzi, że jego zasięg zmniejszył się, ponieważ Księżyc zasłonił antenę.",
+a:[
+["Przyjmujesz teorię i zamawiasz teleskop.",-5],
+["Sprawdzasz warunki propagacyjne, teren i instalację antenową.",10],
+["Proponujesz przesunięcie Księżyca.",0]
+],
+e:"Na zasięg wpływają m.in. wysokość anteny, przeszkody, propagacja i parametry toru radiowego."
+},
+{
+c:"IDENTYFIKACJA",
+q:"🚨 Operator prowadzi długą rozmowę, ale nie podaje swojego znaku wywoławczego.",
+a:[
+["Przypominasz o obowiązku prawidłowej identyfikacji.",10],
+["Próbujesz zgadnąć jego znak.",-2],
+["Nadajesz CQ do niego samego.",0]
+],
+e:"Stacja musi identyfikować się zgodnie z obowiązującymi przepisami i warunkami pozwolenia."
+},
+{
+c:"MIKROFONY",
+q:"🚨 Operator przez 5 minut opowiada o obiedzie. Okazuje się, że nie puścił PTT.",
+a:[
+["Informujesz go, że mikrofon nie jest pamiętnikiem.",0],
+["Sprawdzasz PTT i połączenie mikrofonu.",10],
+["Wysyłasz kucharza do stacji.",-2]
+],
+e:"Przy problemach z nadawaniem warto sprawdzić PTT, mikrofon i połączenia."
+},
+{
+c:"ZAKŁÓCENIA",
+q:"🚨 Odbiornik szumi. Operator podejrzewa, że winny jest sąsiad z działki.",
+a:[
+["Od razu składasz skargę.",-5],
+["Sprawdzasz źródła zakłóceń, instalację i charakter sygnału.",10],
+["Zmieniasz sąsiada.",0]
+],
+e:"QRM oznacza zakłócenia od innych stacji, ale źródłem zakłóceń mogą być również urządzenia elektryczne."
+},
+{
+c:"ANTENY",
+q:"🚨 Operator zamontował antenę kierunkową i dziwi się, że obrót jej o 180° zmienił odbiór.",
+a:[
+["Wyjaśniasz charakterystykę kierunkową anteny.",10],
+["Oskarżasz kompas o sabotaż.",0],
+["Zamawiasz antenę dookólną.",-2]
+],
+e:"Antena kierunkowa ma określoną charakterystykę promieniowania i różny zysk zależnie od kierunku."
+},
+{
+c:"CYFROWE",
+q:"🚨 Operator słyszy cyfrową transmisję i stwierdza, że radiotelefon mówi językiem robotów.",
+a:[
+["Wyjaśniasz różnicę między emisją analogową i cyfrową.",10],
+["Dzwonisz do serwisu językowego.",0],
+["Odpowiadasz alfabetem Morse'a.",-2]
+],
+e:"Emisje cyfrowe kodują i przesyłają dane w postaci cyfrowej. Nie jest to awaria tylko dlatego, że brzmi inaczej."
+}
+];
+
+let score=0,number=0,used=[],answered=false;
+
+function shuffle(a){
+let b=[...a];
+for(let i=b.length-1;i>0;i--){
+let j=Math.floor(Math.random()*(i+1));
+[b[i],b[j]]=[b[j],b[i]];
+}
+return b;
+}
+
+function rank(){
+if(score>=100)return "Naczelnik";
+if(score>=70)return "Dyspozytor";
+if(score>=40)return "Operator";
+if(score>=20)return "Pomocnik";
+return "Stażysta";
+}
+
+function nextEvent(){
+if(used.length===events.length)used=[];
+let available=events.map((e,i)=>i).filter(i=>!used.includes(i));
+let id=shuffle(available)[0];
+used.push(id);
+let e=events[id];
+answered=false;
+number++;
+
+document.getElementById("category").textContent=
+"ZGŁOSZENIE NR "+String(number).padStart(3,"0")+" | "+e.c;
+document.getElementById("event").textContent=e.q;
+document.getElementById("result").textContent="";
+document.getElementById("next").disabled=true;
+
+const area=document.getElementById("options");
+area.innerHTML="";
+
+shuffle(e.a).forEach(([label,points])=>{
+let b=document.createElement("button");
+b.className="option";
+b.textContent=label;
+b.onclick=()=>answer(b,points,e);
+area.appendChild(b);
+});
+
+update();
+}
+
+function answer(button,points,e){
+if(answered)return;
+answered=true;
+
+document.querySelectorAll(".option").forEach(b=>b.disabled=true);
+button.classList.add(points>0?"good":"bad");
+
+score+=points;
+score=Math.max(0,score);
+
+let reaction=points>0
+?"✓ Dobra decyzja! +"+points+" pkt."
+:points<0
+?"✗ Interwencja nieudana. "+points+" pkt."
+:"Niestety, brak punktów.";
+
+document.getElementById("result").innerHTML=
+reaction+"<br><br>💡 "+e.e;
+
+document.getElementById("report").textContent=
+"Interwencja "+number+": "+(points>0?"zakończona sukcesem.":"wymaga dalszych działań.");
+
+document.getElementById("next").disabled=false;
+update();
+}
+
+function update(){
+document.getElementById("score").textContent=score;
+document.getElementById("number").textContent=number;
+document.getElementById("rank").textContent=rank();
+}
+
+function restart(){
+score=0;number=0;used=[];
+document.getElementById("report").textContent=
+"Nowy dyżur rozpoczęty. Wszystkie jednostki gotowe.";
+nextEvent();
+}
+
+nextEvent();
+</script>
+</body>
+</html>
