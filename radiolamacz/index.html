@@ -1,0 +1,910 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SP7KJR | RADIOŁAMACZ</title>
+
+<style>
+:root {
+  --bg:#101827;
+  --panel:#1b293d;
+  --cell:#2a3d55;
+  --blue:#42bdf5;
+  --green:#24b88b;
+  --text:#edf3fa;
+  --muted:#9bacc1;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  padding:20px 12px 40px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Arial,sans-serif;
+}
+main {max-width:900px;margin:auto}
+header {text-align:center;margin:10px 0 25px}
+header h1 {
+  color:var(--blue);
+  letter-spacing:3px;
+  margin-bottom:7px;
+  font-size:clamp(25px,5vw,38px);
+}
+header p {color:var(--muted);margin:5px}
+.panel {
+  background:var(--panel);
+  border:1px solid #30445e;
+  border-radius:14px;
+  padding:17px;
+  margin-bottom:16px;
+}
+h2 {font-size:19px;margin-top:0}
+h3 {font-size:16px}
+.stats {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  text-align:center;
+}
+.stat strong {
+  display:block;
+  color:var(--blue);
+  font-size:25px;
+  margin-bottom:4px;
+}
+.stat small {color:var(--muted)}
+#board {
+  display:grid;
+  grid-template-columns:repeat(15,minmax(0,1fr));
+  gap:3px;
+  max-width:600px;
+  margin:18px auto;
+  user-select:none;
+  -webkit-user-select:none;
+}
+.cell {
+  aspect-ratio:1;
+  min-width:0;
+  border-radius:4px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:var(--cell);
+  font-size:clamp(10px,2.7vw,19px);
+  font-weight:bold;
+  cursor:pointer;
+  transition:background .12s;
+}
+.cell.selected {background:#d99c37;color:#111}
+.cell.found {background:#167b62;color:white}
+.cell.hint {background:#9856bb;color:white}
+.instructions {
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.5;
+}
+#message {
+  text-align:center;
+  min-height:25px;
+  color:#ffd16c;
+  margin:12px 0;
+  font-weight:bold;
+}
+#progress {
+  height:9px;
+  border-radius:20px;
+  background:#35475d;
+  overflow:hidden;
+}
+#bar {
+  height:100%;
+  width:0%;
+  background:var(--green);
+  transition:width .25s;
+}
+.words {
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.word {
+  padding:8px 11px;
+  border-radius:7px;
+  background:#293e57;
+  font-size:13px;
+}
+.word.done {
+  background:#176b56;
+  text-decoration:line-through;
+  opacity:.7;
+}
+button {
+  background:#168ac4;
+  border:0;
+  color:white;
+  border-radius:8px;
+  padding:12px 15px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:4px 3px;
+}
+button:hover {filter:brightness(1.17)}
+button:disabled {opacity:.5;cursor:not-allowed}
+.secondary {background:#42546c}
+.warning {background:#a66b25}
+input {
+  background:#101d2d;
+  color:white;
+  border:1px solid #50647d;
+  border-radius:8px;
+  padding:12px;
+  min-width:0;
+  width:100%;
+  outline:none;
+}
+input:focus {border-color:var(--blue)}
+.addrow {
+  display:flex;
+  gap:8px;
+  margin-top:10px;
+}
+.addrow button {white-space:nowrap}
+.info {
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.5;
+}
+footer {
+  text-align:center;
+  color:#7589a3;
+  font-size:12px;
+  margin-top:25px;
+}
+@media(max-width:430px) {
+  body {padding:12px 7px}
+  .panel {padding:12px}
+  #board {gap:2px}
+  .cell {border-radius:3px}
+  button {padding:11px 12px}
+}
+</style>
+</head>
+
+<body>
+<main>
+
+<header>
+  <h1>📡 RADIOŁAMACZ</h1>
+  <p>Krótkofalarska gra edukacyjna</p>
+  <p><b>SP7KJR | Wersja 2.0</b></p>
+</header>
+
+<section class="panel stats">
+  <div class="stat">
+    <strong id="score">0</strong>
+    <small>Punkty</small>
+  </div>
+  <div class="stat">
+    <strong id="counter">0/12</strong>
+    <small>Znalezione hasła</small>
+  </div>
+  <div class="stat">
+    <strong id="time">00:00</strong>
+    <small>Czas gry</small>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>🔎 Wykreślanka</h2>
+  <p class="instructions">
+    Wybierz pierwszą literę hasła, a następnie ostatnią.
+    Słowa mogą być ukryte poziomo, pionowo i po skosie,
+    także od końca.
+  </p>
+
+  <div id="board"></div>
+  <div id="message">Stacja gotowa. Czekam na operatora!</div>
+  <div id="progress"><div id="bar"></div></div>
+</section>
+
+<section class="panel">
+  <h2>📋 Lista poszukiwanych haseł</h2>
+  <div class="words" id="wordList"></div>
+</section>
+
+<section class="panel">
+  <h2>🎛️ Centrum operacyjne</h2>
+  <button onclick="newGame()">↻ Nowa rozgrywka</button>
+  <button class="warning" onclick="hint()">Podpowiedź</button>
+  <button class="secondary" onclick="resetScore()">Reset wyniku</button>
+  <p class="info">
+    Nowa rozgrywka losuje kolejny zestaw słów i nową planszę.
+    Podpowiedź pokazuje początek jednego z niewykreślonych haseł.
+    Użycie podpowiedzi oznacza brak punktów za dane hasło.
+  </p>
+</section>
+
+<section class="panel">
+  <h2>➕ Dodaj własne hasło</h2>
+  <p class="instructions">
+    Dodaj termin, skrót, nazwę urządzenia lub pojęcie
+    krótkofalarskie. Będzie dostępne również w następnych
+    rozgrywkach i po ponownym otwarciu strony.
+  </p>
+
+  <div class="addrow">
+    <input id="newWord" maxlength="15"
+      placeholder="Np. FM-LINK, ANTENA, QSO..."
+      autocomplete="off">
+    <button onclick="addWord()">Dodaj</button>
+  </div>
+
+  <p class="info" id="addMessage">
+    Maksymalnie 15 znaków po usunięciu spacji i znaków specjalnych.
+  </p>
+  <p class="info">
+    Własne hasła są zapisywane lokalnie w przeglądarce.
+  </p>
+</section>
+
+<section class="panel">
+  <h2>📚 Baza haseł</h2>
+  <div class="stats">
+    <div class="stat">
+      <strong id="baseCount">0</strong>
+      <small>Hasła w bazie</small>
+    </div>
+    <div class="stat">
+      <strong id="customCount">0</strong>
+      <small>Twoje hasła</small>
+    </div>
+    <div class="stat">
+      <strong id="roundCount">0</strong>
+      <small>Rozgrywki w sesji</small>
+    </div>
+  </div>
+</section>
+
+<footer>
+  SP7KJR | RADIOŁAMACZ v2.0<br>
+  73! Do usłyszenia w eterze.
+</footer>
+
+</main>
+
+<script>
+
+// ======================================
+// 1. KONFIGURACJA
+// ======================================
+
+const SIZE = 15;
+const WORDS_PER_GAME = 12;
+const STORAGE_KEY = "SP7KJR_RADIO_WORDS_V2";
+
+const BASE_WORDS = [
+  // Sprzęt radiowy
+  "ANTENA","RADIOTELEFON","MIKROFON","TRANSCEIVER",
+  "YAESU","ICOM","KENWOOD","BAOFENG","GLOSNIK",
+  "ZASILACZ","AKUMULATOR","BATERIA","SWR",
+  "RADIO","TRX","RECEIVER","NADAJNIK","ODBIORNIK","BAOFENG","QUASHENG","YAESU","ICOM"
+
+  // Anteny
+  "DIPOL","YAGI","VERTICAL","BALUN","RADIAL",
+  "KOAKSJAL","MASZT","POLARYZACJA","IMPEDANCJA",
+  "REFLEKTOR","DIREKTOR","PROMIENNIK","GROUND",
+
+  // Emisje
+  "FM","AM","SSB","USB","LSB","CW","RTTY","FT8",
+  "DMR","C4FM","DSTAR","APRS","SSTV","PACKET",
+  "MODULACJA","ANALOG","CYFROWA","TELEGRAFIA",
+
+  // Pasma
+  "HF","VHF","UHF","SHF","UKF","PMR","CB",
+  "DWAMETRY","SIEDEMDZIESIAT","PASMO","CZESTOTLIWOSC",
+
+  // Łączność
+  "QSO","QSL","QTH","QRZ","QRM","QRN","QRT",
+  "QSY","QRP","QRO","QSB","RST","CALLSIGN",
+  "LOKATOR","NASLUCH","NADAWANIE","KORESPONDENT",
+  "REPEATER","PRZEMIENNIK","SIMPLEX","DUPLEX",
+  "ECHOLINK","WIRESX","FMLINK","LOGBOOK",
+  "KROTKOFALARSTWO","OPERATOR","RAPORT",
+  "LACZNOSC","IDENTYFIKACJA","LICENCJA",
+  "POZWOLENIE","DZIENNIK","STACJA","PZK","IRAU","ITU","UKE","UNLIS","EGZAMINKF"
+
+  // Propagacja
+  "PROPAGACJA","TROPOSFERA","IONOSFERA",
+  "REFRAKCJA","DYFRAKCJA","ZAKLOCENIA",
+  "FADING","ZASIEG","HORYZONT","ODBIICIE",
+  "TROPO","INWERSJA",
+
+  // Aktywności
+  "SOTA","POTA","HOTA","YOTA","CONTEST",
+  "DX","DXCC","MOBILE","PORTABLE","FIELD",
+  "WWFF","IOTA","AWARD","RADIOWPLECAKU", "SIERRAECHO", "PLANAWARYJNY","CQ"
+
+  // Procedury i terminy
+  "ROGER","OVER","OUT","BREAK","QCODE",
+  "MORSE","RAPORT","NASLUCH","WYWOŁANIE",
+  "KORESPONDENCJA","ETer","RADIOAMATOR",
+  "KROTKOFALOWIEC","LOKALIZACJA"
+];
+
+// ======================================
+// 2. PAMIĘĆ I STAN GRY
+// ======================================
+
+let customWords = loadCustomWords();
+let words = [];
+let grid = [];
+let placements = [];
+let found = new Set();
+let recentWords = [];
+let recentSets = [];
+
+let score = 0;
+let seconds = 0;
+let rounds = 0;
+let timer = null;
+let anchor = null;
+let selected = [];
+let hintedWords = new Set();
+
+const board = document.getElementById("board");
+
+function loadCustomWords() {
+  try {
+    const data = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || "[]"
+    );
+    return Array.isArray(data) ? data.filter(
+      w => typeof w === "string" &&
+      /^[A-Z0-9]{2,15}$/.test(w)
+    ) : [];
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveCustomWords() {
+  try {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(customWords)
+    );
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+function normalizeWord(value) {
+  return value
+    .toUpperCase()
+    .replace(/Ł/g,"L")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^A-Z0-9]/g,"");
+}
+
+function shuffle(array) {
+  const result = [...array];
+
+  for(let i=result.length-1;i>0;i--) {
+    const j=Math.floor(Math.random()*(i+1));
+    [result[i],result[j]]=[result[j],result[i]];
+  }
+
+  return result;
+}
+
+function getDictionary() {
+  return [...new Set(
+    [...BASE_WORDS,...customWords]
+      .map(normalizeWord)
+      .filter(w => w.length>=2 && w.length<=SIZE)
+  )];
+}
+
+// ======================================
+// 3. LOSOWANIE I GENEROWANIE
+// ======================================
+
+function chooseWords() {
+  const pool = getDictionary();
+
+  const fresh = pool.filter(w =>
+    !recentWords.includes(w)
+  );
+
+  const available = fresh.length>=WORDS_PER_GAME
+    ? fresh
+    : pool;
+
+  let chosen = [];
+
+  // Unikamy ostatnio użytych zestawów.
+  for(let attempt=0;attempt<100;attempt++) {
+    chosen=shuffle(available).slice(0,WORDS_PER_GAME);
+
+    const signature=[...chosen].sort().join("|");
+
+    if(!recentSets.includes(signature)) break;
+  }
+
+  recentWords.push(...chosen);
+  recentWords = recentWords.slice(-24);
+
+  const signature=[...chosen].sort().join("|");
+  recentSets.push(signature);
+  recentSets=recentSets.slice(-30);
+
+  return chosen;
+}
+
+function generate() {
+  const directions = [
+    [0,1],[1,0],[1,1],[1,-1],
+    [0,-1],[-1,0],[-1,-1],[-1,1]
+  ];
+
+  // Ponawiamy generowanie w razie niepowodzenia.
+  for(let restart=0;restart<10;restart++) {
+    grid=Array.from({length:SIZE},()=>
+      Array(SIZE).fill("")
+    );
+
+    placements=[];
+
+    words=chooseWords();
+
+    // Najdłuższe słowa umieszczamy pierwsze.
+    const ordered=shuffle(words).sort(
+      (a,b)=>b.length-a.length
+    );
+
+    for(const word of ordered) {
+      let placed=false;
+
+      for(let attempt=0;attempt<3000 && !placed;attempt++) {
+        const [dr,dc]=directions[
+          Math.floor(Math.random()*directions.length)
+        ];
+
+        const r=Math.floor(Math.random()*SIZE);
+        const c=Math.floor(Math.random()*SIZE);
+
+        const er=r+(word.length-1)*dr;
+        const ec=c+(word.length-1)*dc;
+
+        if(er<0 || er>=SIZE || ec<0 || ec>=SIZE)
+          continue;
+
+        let valid=true;
+
+        for(let i=0;i<word.length;i++) {
+          const letter=grid[r+i*dr][c+i*dc];
+
+          if(letter && letter!==word[i]) {
+            valid=false;
+            break;
+          }
+        }
+
+        if(!valid) continue;
+
+        const cells=[];
+
+        for(let i=0;i<word.length;i++) {
+          const rr=r+i*dr;
+          const cc=c+i*dc;
+
+          grid[rr][cc]=word[i];
+          cells.push(`${rr}-${cc}`);
+        }
+
+        placements.push({word,cells});
+        placed=true;
+      }
+
+      if(!placed) break;
+    }
+
+    if(placements.length===WORDS_PER_GAME) {
+      break;
+    }
+
+    if(restart===9) {
+      // Bezpieczny awaryjny dobór krótszych słów.
+      grid=Array.from({length:SIZE},()=>
+        Array(SIZE).fill("")
+      );
+      placements=[];
+      words=shuffle(getDictionary()
+        .filter(w=>w.length<=10))
+        .slice(0,WORDS_PER_GAME);
+
+      // Ponowne losowanie planszy.
+      for(const word of words) {
+        let placed=false;
+
+        for(let a=0;a<3000 && !placed;a++) {
+          const [dr,dc]=shuffle(directions)[0];
+          const r=Math.floor(Math.random()*SIZE);
+          const c=Math.floor(Math.random()*SIZE);
+          const er=r+(word.length-1)*dr;
+          const ec=c+(word.length-1)*dc;
+
+          if(er<0 || er>=SIZE || ec<0 || ec>=SIZE)
+            continue;
+
+          let ok=true;
+
+          for(let i=0;i<word.length;i++) {
+            if(grid[r+i*dr][c+i*dc] &&
+               grid[r+i*dr][c+i*dc]!==word[i]) ok=false;
+          }
+
+          if(!ok) continue;
+
+          const cells=[];
+
+          for(let i=0;i<word.length;i++) {
+            const rr=r+i*dr, cc=c+i*dc;
+            grid[rr][cc]=word[i];
+            cells.push(`${rr}-${cc}`);
+          }
+
+          placements.push({word,cells});
+          placed=true;
+        }
+      }
+    }
+  }
+
+  words=placements.map(p=>p.word);
+
+  const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  for(let r=0;r<SIZE;r++) {
+    for(let c=0;c<SIZE;c++) {
+      if(!grid[r][c]) {
+        grid[r][c]=letters[
+          Math.floor(Math.random()*letters.length)
+        ];
+      }
+    }
+  }
+}
+
+// ======================================
+// 4. RYSOWANIE PLANSZY
+// ======================================
+
+function renderBoard() {
+  board.innerHTML="";
+
+  for(let r=0;r<SIZE;r++) {
+    for(let c=0;c<SIZE;c++) {
+      const el=document.createElement("div");
+
+      el.className="cell";
+      el.textContent=grid[r][c];
+      el.dataset.pos=`${r}-${c}`;
+
+      el.addEventListener("click",()=>selectCell(r,c));
+
+      board.appendChild(el);
+    }
+  }
+
+  paint();
+}
+
+function renderWords() {
+  const list=document.getElementById("wordList");
+  list.innerHTML="";
+
+  words.forEach(word=>{
+    const el=document.createElement("div");
+    el.className="word"+(found.has(word)?" done":"");
+    el.textContent=word;
+    list.appendChild(el);
+  });
+}
+
+function paint() {
+  document.querySelectorAll(".cell").forEach(el=>{
+    const pos=el.dataset.pos;
+
+    const isFound=placements.some(p=>
+      found.has(p.word) && p.cells.includes(pos)
+    );
+
+    el.classList.toggle("found",isFound);
+    el.classList.toggle("selected",selected.includes(pos));
+  });
+}
+
+// ======================================
+// 5. ZAZNACZANIE HASEŁ
+// ======================================
+
+function selectCell(r,c) {
+  const pos=`${r}-${c}`;
+
+  if(!anchor) {
+    anchor=[r,c];
+    selected=[pos];
+    paint();
+    document.getElementById("message").textContent=
+      "Wybrano początek. Teraz wskaż koniec hasła.";
+    return;
+  }
+
+  const [r0,c0]=anchor;
+
+  if(r===r0 && c===c0) {
+    anchor=null;
+    selected=[];
+    paint();
+    return;
+  }
+
+  const dr=Math.sign(r-r0);
+  const dc=Math.sign(c-c0);
+
+  const straight=
+    r===r0 || c===c0 ||
+    Math.abs(r-r0)===Math.abs(c-c0);
+
+  if(!straight) {
+    anchor=[r,c];
+    selected=[pos];
+    paint();
+    document.getElementById("message").textContent=
+      "Wybierz prostą linię poziomą, pionową lub ukośną.";
+    return;
+  }
+
+  const path=[];
+  let rr=r0,cc=c0;
+
+  while(true) {
+    path.push(`${rr}-${cc}`);
+
+    if(rr===r && cc===c) break;
+
+    rr+=dr;
+    cc+=dc;
+  }
+
+  selected=path;
+
+  const match=placements.find(p=>
+    !found.has(p.word) &&
+    (same(p.cells,path) ||
+     same(p.cells,[...path].reverse()))
+  );
+
+  if(match) {
+    found.add(match.word);
+
+    if(!hintedWords.has(match.word)) {
+      score+=10;
+    }
+
+    document.getElementById("message").textContent=
+      `📡 Odebrano poprawnie: ${match.word}!`;
+
+    if(navigator.vibrate) navigator.vibrate(40);
+
+    anchor=null;
+    selected=[];
+
+    renderWords();
+    paint();
+    update();
+
+    if(found.size===words.length) {
+      clearInterval(timer);
+      document.getElementById("message").textContent=
+        "🏆 GRATULACJE! Wszystkie hasła odebrane. 73!";
+    }
+
+    return;
+  }
+
+  anchor=[r,c];
+  selected=[pos];
+  paint();
+
+  document.getElementById("message").textContent=
+    "Brak trafienia. Spróbuj ponownie, operatorze!";
+}
+
+function same(a,b) {
+  return a.length===b.length &&
+    a.every((v,i)=>v===b[i]);
+}
+
+// ======================================
+// 6. PODPOWIEDZI
+// ======================================
+
+function hint() {
+  const remaining=placements.filter(
+    p=>!found.has(p.word)
+  );
+
+  if(!remaining.length) return;
+
+  const target=shuffle(remaining)[0];
+
+  hintedWords.add(target.word);
+
+  const first=target.cells[0];
+
+  const cell=board.querySelector(
+    `[data-pos="${first}"]`
+  );
+
+  if(cell) {
+    cell.classList.add("hint");
+
+    setTimeout(()=>{
+      cell.classList.remove("hint");
+    },2500);
+  }
+
+  document.getElementById("message").textContent=
+    `Podpowiedź: pierwsza litera hasła ${target.word}.`;
+}
+
+// ======================================
+// 7. PUNKTY I CZAS
+// ======================================
+
+function update() {
+  document.getElementById("score").textContent=score;
+
+  document.getElementById("counter").textContent=
+    `${found.size}/${words.length}`;
+
+  document.getElementById("bar").style.width=
+    `${found.size/words.length*100}%`;
+
+  updateDatabaseInfo();
+}
+
+function startTimer() {
+  clearInterval(timer);
+
+  seconds=0;
+  showTime();
+
+  timer=setInterval(()=>{
+    seconds++;
+    showTime();
+  },1000);
+}
+
+function showTime() {
+  const m=String(Math.floor(seconds/60)).padStart(2,"0");
+  const s=String(seconds%60).padStart(2,"0");
+
+  document.getElementById("time").textContent=
+    `${m}:${s}`;
+}
+
+// ======================================
+// 8. NOWA ROZGRYWKA
+// ======================================
+
+function newGame() {
+  found.clear();
+  hintedWords.clear();
+  selected=[];
+  anchor=null;
+
+  score=0;
+  rounds++;
+
+  generate();
+  renderBoard();
+  renderWords();
+  update();
+  startTimer();
+
+  document.getElementById("message").textContent=
+    "Nowa plansza gotowa. Powodzenia w eterze!";
+
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+function resetScore() {
+  score=0;
+  update();
+
+  document.getElementById("message").textContent=
+    "Wynik wyzerowany. Rozgrywka trwa dalej.";
+}
+
+// ======================================
+// 9. DODAWANIE WŁASNYCH HASEŁ
+// ======================================
+
+function addWord() {
+  const input=document.getElementById("newWord");
+  const message=document.getElementById("addMessage");
+
+  const original=input.value.trim();
+  const word=normalizeWord(original);
+
+  if(!word) {
+    message.textContent="Wpisz prawidłowe hasło.";
+    return;
+  }
+
+  if(word.length<2 || word.length>SIZE) {
+    message.textContent=
+      "Hasło musi mieć od 2 do 15 znaków.";
+    return;
+  }
+
+  if(getDictionary().includes(word)) {
+    message.textContent="To hasło już znajduje się w bazie.";
+    return;
+  }
+
+  customWords.push(word);
+
+  if(!saveCustomWords()) {
+    customWords.pop();
+
+    message.textContent=
+      "Nie udało się zapisać. Sprawdź dostępne miejsce w przeglądarce.";
+    return;
+  }
+
+  input.value="";
+
+  message.textContent=
+    `Dodano "${word}" do bazy. Będzie losowane w kolejnych grach!`;
+
+  updateDatabaseInfo();
+}
+
+document.getElementById("newWord")
+  .addEventListener("keydown",e=>{
+    if(e.key==="Enter") addWord();
+  });
+
+// ======================================
+// 10. INFORMACJE O BAZIE
+// ======================================
+
+function updateDatabaseInfo() {
+  document.getElementById("baseCount").textContent=
+    BASE_WORDS.length;
+
+  document.getElementById("customCount").textContent=
+    customWords.length;
+
+  document.getElementById("roundCount").textContent=
+    rounds;
+}
+
+// ======================================
+// 11. START
+// ======================================
+
+updateDatabaseInfo();
+newGame();
+
+</script>
+</body>
+</html>
